@@ -10,6 +10,7 @@ Measured on the exact compressed model files that ship. Figures are the share of
 | Real messages, first 5 | 51.9% | 96.3% | 3 of 5 |
 | Real messages, newest 10 | 47.9% | 81.4% | 0 of 10 |
 | Real messages, all 15 | 48.8% | 84.6% | 3 of 15 |
+| 6 later real messages, added after training ended (128 words) | 53.8% | 89.1% | 1 of 6 |
 
 **Which number to trust:** the newest 10 real messages. The error patterns in training were modelled on the real messages, which flatters the first 5 most. The real messages themselves were never used as training data. The intended sentences are a human best guess, and some counted "errors" are harmless, such as "a bit" for "abit".
 
