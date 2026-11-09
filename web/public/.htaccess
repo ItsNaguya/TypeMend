@@ -1,0 +1,42 @@
+# TypeMend: static site served by Apache (Plesk). No server code: text is repaired in the browser and never uploaded.
+
+AddType text/javascript .mjs
+AddType application/wasm .wasm
+AddType application/octet-stream .onnx
+
+Options -Indexes
+DirectoryIndex index.html
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE application/wasm text/javascript application/javascript text/css text/html image/svg+xml
+</IfModule>
+
+<IfModule mod_headers.c>
+  # cross-origin isolation lets the model use several CPU threads
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+  Header always set Cross-Origin-Embedder-Policy "require-corp"
+  Header always set Cross-Origin-Resource-Policy "same-origin"
+
+  Header always set Strict-Transport-Security "max-age=31536000"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "no-referrer"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+  Header always unset X-Powered-By
+
+  # unlisted test: keep it out of search engines
+  Header always set X-Robots-Tag "noindex, nofollow"
+
+  # everything revalidates (ETag makes it cheap), so a new model reaches people on their next visit
+  <FilesMatch "\.(html|js|mjs|css|svg|onnx)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "\.wasm$">
+    Header set Cache-Control "public, max-age=2592000, immutable"
+  </FilesMatch>
+</IfModule>
+
+# hide dotfiles
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>

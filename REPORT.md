@@ -44,4 +44,4 @@ Training plateaued: over the last 100,000 of 144,000 steps the newest-10 score s
 ## Not tested
 
 - Nothing has run inside FFXIV yet: not the chat hook, the preview window, or loading ONNX Runtime in the game process.
-- The web page has been tested locally only and is not deployed.
+- The web page is live at https://typemend.naguya.tech/ as an unlisted test (noindex, not on the NaguSuite page).
