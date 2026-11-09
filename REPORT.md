@@ -56,6 +56,22 @@ A second look at doubtful words, choosing among similar words from a 25,558-word
 
 The gain on the newest 10 is about 5 words out of 374, too small to tell from chance, at several times the cost. It was left out of the plugin and the web page. In those 10 messages, 12 of the 374 intended words are not on the list, so a personal word list could recover about 3 points at most. More real messages are the better next step.
 
+## Small language model experiment (not shipped)
+
+Tested on the RTX 5090 with `training/llmtest.py`, 16-bit models, no compression. Share of words correct:
+
+| | Current model | Qwen3-4B alone | SmolLM3-3B alone | Current + Qwen3-4B | Current + SmolLM3-3B |
+|---|---|---|---|---|---|
+| Real messages, newest 10 | 80.9% | 72.9% | 73.3% | 83.1% | 84.3% |
+| 6 later real messages | 89.1% | 86.0% | 86.0% | 91.4% | 92.2% |
+| Real messages, first 5 | 96.3% | 82.3% | 78.4% | 97.2% | 98.1% |
+| 40 made-up sentences | 95.6% | 84.3% | 84.2% | 96.6% | 96.1% |
+| Slang and adult words kept | 20/23 | 14/23 | 12/23 | 20/23 | 20/23 |
+| Clean text unchanged | 40/40 | 37/40 | 31/40 | 39/40 | 37/40 |
+| Graphics memory | none | 8.0 GB | 6.2 GB | 8.0 GB | 6.2 GB |
+
+The current model's figure for the newest 10 is 80.9% here because this script does not split long messages. Used as a second step the language model adds 2 to 3 points on the newest real messages. It also restyles words (for example "dont" to "don't"). One example in the prompt is modelled on an error seen in the later 6 messages, which flatters that row. Speed on an RTX 3090 alongside the game, and a compressed version, have not been tested.
+
 ## Not tested
 
 - Nothing has run inside FFXIV yet: not the chat hook, the preview window, or loading ONNX Runtime in the game process.
