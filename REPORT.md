@@ -39,7 +39,21 @@ Speed was measured on an i7-14700KF. A Ryzen 9 5900X has not been tested. WebGPU
 - Real-word typos need context the model doesn't have, such as "the enjoy" typed for "the emoji" across two messages.
 - Game and product names not seen in training can get split or altered.
 
-Training plateaued: over the last 100,000 of 144,000 steps the newest-10 score stayed between 79% and 83%. More of the same training is unlikely to help. The likely next gain is a personal word list for the writer.
+Training plateaued: over the last 100,000 of 144,000 steps the newest-10 score stayed between 79% and 83%. More of the same training is unlikely to help.
+
+## Word list experiment (not shipped)
+
+A second look at doubtful words, choosing among similar words from a 25,558-word list by model score and closeness to the typed letters (`training/lexfix.py`). Settings were tuned without the newest 10 real messages, which were then scored once.
+
+| | Current model | With second look |
+|---|---|---|
+| Real messages, newest 10 | 81.4% | 82.9% |
+| 40 made-up sentences | 95.6% | 96.3% |
+| Real messages, first 5 | 96.3% | 96.3% |
+| 120 freshly garbled corpus sentences | 98.1% | 98.0% |
+| Time per message, 4 threads | median about 0.5 s (estimated from the 2-thread figure) | median 2.5 s, longest 9.4 s |
+
+The gain on the newest 10 is about 5 words out of 374, too small to tell from chance, at several times the cost. It was left out of the plugin and the web page. In those 10 messages, 12 of the 374 intended words are not on the list, so a personal word list could recover about 3 points at most. More real messages are the better next step.
 
 ## Not tested
 
