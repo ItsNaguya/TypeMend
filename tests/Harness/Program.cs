@@ -42,6 +42,13 @@ Stretch("lost stretch is refused", Back("i was soo tired", "soooooo") == null);
 Stretch("wrong letter is refused", Back("mmm tired", "soooooo") == null);
 Stretch("changed word is refused", Back("SEEE xD", "SLEEEEEE xD") == null);
 Stretch("whole word split", ChatLine.SplitStretched("i SLEEEEE xD").SequenceEqual(new[] { "i ", "SLEEEEE", " xD" }));
+var keepList = ChatLine.ParseKeepWords("Zyrielle, Limsa\nzyrielle  Ul'dah");
+Stretch("keep list reads and removes repeats", keepList.SequenceEqual(new[] { "Zyrielle", "Limsa", "Ul'dah" }));
+var keepPattern = ChatLine.KeepPattern(keepList)!;
+Stretch("keep matches any case", keepPattern.Matches("saw zyrielle, in LIMSA").Select(m => m.Value).SequenceEqual(new[] { "zyrielle", "LIMSA" }));
+Stretch("keep needs the whole word", !keepPattern.IsMatch("limsas zyriellea"));
+Stretch("keep handles an apostrophe", keepPattern.IsMatch("off to ul'dah now"));
+Stretch("empty keep list", ChatLine.KeepPattern(new List<string>()) == null);
 void Channel(string name, string prefix, ChatChannel held, ChatChannel now, bool expected)
 {
     var ok = ChatChannel.SafeToSend(prefix, held, now) == expected;
@@ -75,6 +82,17 @@ foreach (var message in messages)
     times.Add(timer.ElapsedMilliseconds);
     Console.WriteLine($"OUT\t{repair.Text}\t{string.Join(" | ", repair.UnsureWords)}");
 }
+foreach (var line in new[] { "i sa wZyrielle a tlimsa yesterda yan dwe talked", "tel lQuorvathe i wil lbe lat etonight" })
+{
+    Console.WriteLine($"PLAIN\t{repairer.RunKeepingStretches(line).Text}");
+    Console.WriteLine($"KEEP\t{repairer.RunKeeping(line, new[] { "wZyrielle", "lQuorvathe" }).Text}");
+}
+var altered = "tell Tataroo i wil lbe lat etonight yo uknow";       // the model alone changes this made-up name
+Console.WriteLine($"PLAIN\t{repairer.RunKeepingStretches(altered).Text}");
+var keptRun = repairer.RunKeeping(altered, new[] { "Tataroo" });
+Console.WriteLine($"KEEP\t{keptRun.Text}");
+if (!keptRun.Text.Contains("Tataroo") || !keptRun.Text.Contains("tonight")) { failures++; Console.WriteLine("FAIL never-change word altered"); }
+Console.WriteLine($"final failures: {failures}");
 times.Sort();
 Console.WriteLine($"threads {threads}: median {times[times.Count / 2]} ms, worst {times[^1]} ms");
 Console.WriteLine($"private memory {Process.GetCurrentProcess().PrivateMemorySize64 / 1_000_000} MB");

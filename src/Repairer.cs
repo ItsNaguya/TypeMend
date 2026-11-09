@@ -90,9 +90,30 @@ public sealed class Repairer : IDisposable
             return new Repair(restored, words.Where(w => marked.Contains(w) || marked.Contains(ChatLine.Collapse(w))).ToList());
         }
 
+        return Around(ChatLine.SplitStretched(text), Run, cancel);
+    }
+
+    /// <summary>
+    /// Repairs a text and leaves the writer's never-change words alone. The whole sentence is repaired first, for its
+    /// context; if the model altered one of those words, the text is repaired around them instead.
+    /// </summary>
+    public Repair RunKeeping(string text, IReadOnlyCollection<string> keep, CancellationToken cancel = default)
+    {
+        var pattern = ChatLine.KeepPattern(keep);
+        var typed = pattern?.Matches(text).Select(m => m.Value).ToList();
+        if (pattern == null || typed == null || typed.Count == 0) return RunKeepingStretches(text, cancel);
+
+        var first = RunKeepingStretches(text, cancel);
+        if (pattern.Matches(first.Text).Select(m => m.Value).SequenceEqual(typed))
+            return new Repair(first.Text, first.UnsureWords.Where(w => !typed.Contains(w)).ToList());
+        return Around(pattern.Split(text), RunKeepingStretches, cancel);
+    }
+
+    /// <summary>Repairs the even positions of a split text; odd positions stay exactly as they are.</summary>
+    private static Repair Around(string[] parts, Func<string, CancellationToken, Repair> inner, CancellationToken cancel)
+    {
         var output = new StringBuilder();
         var unsure = new List<string>();
-        var parts = ChatLine.SplitStretched(text);
         for (var i = 0; i < parts.Length; i++)
         {
             if (i % 2 == 1 || string.IsNullOrWhiteSpace(parts[i]))
@@ -100,7 +121,7 @@ public sealed class Repairer : IDisposable
                 output.Append(parts[i]);
                 continue;
             }
-            var repair = Run(parts[i], cancel);
+            var repair = inner(parts[i], cancel);
             if (parts[i].StartsWith(' ')) output.Append(' ');
             output.Append(repair.Text);
             if (parts[i].EndsWith(' ')) output.Append(' ');

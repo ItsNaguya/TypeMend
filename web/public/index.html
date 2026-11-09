@@ -29,6 +29,12 @@
     <span id="status" class="status" role="status" data-i18n="loading">Getting the repair model ready...</span>
   </div>
 
+  <details class="keep">
+    <summary id="keepTitle" data-i18n="keepTitle">Words that should never change</summary>
+    <p class="note" data-i18n="keepHint">Names and game words, one per line. They stay exactly as you typed them when spelled like this. Saved only in this browser.</p>
+    <textarea id="keep" rows="3" spellcheck="false" autocomplete="off" aria-labelledby="keepTitle"></textarea>
+  </details>
+
   <section id="result" hidden aria-live="polite">
     <div class="pair">
       <div class="card">

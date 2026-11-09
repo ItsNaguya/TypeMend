@@ -114,10 +114,32 @@ async function repairKeepingStretches(run, unsure) {
   return around(run, STRETCHED_WORD, repairRun, unsure);
 }
 
+let keepPattern = null;
+function setKeepWords(words) {
+  const seen = new Set();
+  const list = (words || []).filter((w) => !seen.has(w.toLowerCase()) && seen.add(w.toLowerCase())).map((w) => w.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&'));
+  keepPattern = list.length ? new RegExp(`(?<![\\p{L}\\p{N}'])(${list.join('|')})(?![\\p{L}\\p{N}'])`, 'giu') : null;
+}
+
+// The whole sentence is repaired first, for its context; if the model altered a never-change word, the text is repaired around those words.
+async function repairKeepingNames(run, unsure) {
+  const typed = keepPattern && run.match(keepPattern);
+  if (!typed) return repairKeepingStretches(run, unsure);
+  const marked = [];
+  const first = await repairKeepingStretches(run, marked);
+  const found = first.match(keepPattern) || [];
+  if (found.length === typed.length && found.every((w, i) => w === typed[i])) {
+    unsure.push(...marked.filter((w) => !typed.includes(w)));
+    return first;
+  }
+  return around(run, keepPattern, repairKeepingStretches, unsure);
+}
+
 // Anything the model does not know (umlauts, emoji, line breaks, <placeholders>) is passed through untouched.
-async function repair(text) {
+async function repair(text, keep) {
+  setKeepWords(keep);
   const unsure = [];
-  return { text: await around(text, KEPT, repairKeepingStretches, unsure), unsure };
+  return { text: await around(text, KEPT, repairKeepingNames, unsure), unsure };
 }
 
 const ready = load().then(
@@ -129,7 +151,7 @@ self.onmessage = async ({ data }) => {
   await ready;
   const start = performance.now();
   try {
-    postMessage({ type: 'done', id: data.id, ...(await repair(data.text)), ms: Math.round(performance.now() - start) });
+    postMessage({ type: 'done', id: data.id, ...(await repair(data.text, data.keep)), ms: Math.round(performance.now() - start) });
   } catch (e) {
     postMessage({ type: 'error', id: data.id, error: String(e) });
   }

@@ -4,8 +4,8 @@ Repairs typing, and nothing else, on the writer's own PC. It is built with a per
 
 Two front ends share one small model (22 MB, CPU only):
 
-- **Dalamud plugin** (`src/`): catches a chat line when Enter is pressed and shows a preview. Enter sends the repair, "Send as typed" sends the original, Esc cancels. `/typemend` turns it on or off. Commands are left alone; only chat lines are repaired.
-- **Web page** (`web/`): the fallback for patch days when plugins can't load. Paste, repair, copy. English and German.
+- **Dalamud plugin** (`src/`): catches a chat line when Enter is pressed and shows a preview. Enter sends the repair, "Send as typed" sends the original, Esc cancels. `/typemend` turns it on or off, and `/typemend words` opens the list of names and game words that must never change. Commands are left alone; only chat lines are repaired.
+- **Web page** (`web/`): the fallback for patch days when plugins can't load. Paste, repair, copy. English and German. Its never-change list is saved only in that browser.
 
 ## Folders
 

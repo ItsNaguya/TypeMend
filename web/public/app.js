@@ -2,7 +2,14 @@ const $ = (id) => document.getElementById(id);
 const { t, toggle } = window.I18N;
 const worker = new Worker('worker.js', { type: 'module' });
 const input = $('input'), go = $('go'), status = $('status');
+const keepWords = $('keep');
 let nextId = 0, currentId = 0, isReady = false, typedText = '';
+
+// The never-change list stays in this browser and is only ever handed to the local worker.
+try { keepWords.value = localStorage.getItem('typemend_keep') || ''; } catch (_) {}
+keepWords.addEventListener('input', () => {
+  try { localStorage.setItem('typemend_keep', keepWords.value); } catch (_) {}
+});
 
 const setStatus = (key) => { status.dataset.i18n = key; status.textContent = t(key); };
 
@@ -32,7 +39,7 @@ function repair() {
   currentId = ++nextId;
   go.disabled = true;
   setStatus('working');
-  worker.postMessage({ id: currentId, text });
+  worker.postMessage({ id: currentId, text, keep: keepWords.value.split(/[\s,]+/).filter(Boolean) });
 }
 
 worker.onmessage = ({ data }) => {

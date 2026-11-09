@@ -48,6 +48,15 @@ public static partial class ChatLine
     /// <summary>Splits text around game placeholders like &lt;t&gt;. Odd positions are placeholders.</summary>
     public static string[] SplitPlaceholders(string body) => Placeholder().Split(body);
 
+    /// <summary>Reads the writer's never-change list, separated by spaces, commas or lines.</summary>
+    public static List<string> ParseKeepWords(string text) =>
+        text.Split(new[] { ' ', ',', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+    /// <summary>Matches whole words from the never-change list, in any letter case. Null for an empty list.</summary>
+    public static Regex? KeepPattern(IReadOnlyCollection<string> words) => words.Count == 0
+        ? null
+        : new Regex(@"(?<![\p{L}\p{N}'])(" + string.Join('|', words.Select(Regex.Escape)) + @")(?![\p{L}\p{N}'])", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
     /// <summary>The stretches (four or more of one letter in a row) in a text, in order.</summary>
     public static List<string> Stretches(string text) => Stretch().Matches(text).Select(m => m.Value).ToList();
 

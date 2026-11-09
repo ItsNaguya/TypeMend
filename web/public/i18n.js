@@ -6,6 +6,8 @@ window.I18N = (() => {
     lead: 'TypeMend repariert Tippfehler und sonst nichts. Bedeutung, Slang und Ton bleiben, und was du gesagt hast, wird nie geglättet.',
     typedLabel: 'Was du getippt hast',
     repair: 'Reparieren',
+    keepTitle: 'Wörter, die sich nie ändern sollen',
+    keepHint: 'Namen und Spielbegriffe, eins pro Zeile. Sie bleiben genau so, wie du sie getippt hast, wenn sie so geschrieben sind. Wird nur in diesem Browser gespeichert.',
     loading: 'Das Reparatur-Modell wird vorbereitet...',
     readyHint: 'Enter repariert, Umschalt+Enter macht eine neue Zeile.',
     working: 'Wird repariert...',

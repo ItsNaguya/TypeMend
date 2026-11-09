@@ -17,6 +17,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly IPluginLog log;
     private readonly Configuration configuration;
     private readonly PreviewWindow preview;
+    private readonly SettingsWindow settings;
     private readonly ChatInterceptor interceptor;
     private readonly CancellationTokenSource shutdown = new();
     private volatile Repairer? repairer;
@@ -38,8 +39,12 @@ public sealed class Plugin : IDalamudPlugin
         preview = new PreviewWindow(Send);
         interceptor = new ChatInterceptor(interop, log, OnChatLine);
 
-        commands.AddHandler(Command, new CommandInfo(OnCommand) { HelpMessage = "Turns TypeMend on or off." });
+        settings = new SettingsWindow(configuration, () => pluginInterface.SavePluginConfig(configuration));
+
+        commands.AddHandler(Command, new CommandInfo(OnCommand) { HelpMessage = "Turns TypeMend on or off. /typemend words opens your never-change word list." });
         pluginInterface.UiBuilder.Draw += preview.Draw;
+        pluginInterface.UiBuilder.Draw += settings.Draw;
+        pluginInterface.UiBuilder.OpenConfigUi += settings.Open;
 
         var directory = pluginInterface.AssemblyLocation.DirectoryName!;
         Task.Run(() => LoadModel(directory));
@@ -78,6 +83,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             var output = new StringBuilder();
             var unsure = new List<string>();
+            var keep = ChatLine.ParseKeepWords(configuration.NeverChange);
             var parts = ChatLine.SplitPlaceholders(body);
             for (var i = 0; i < parts.Length; i++)
             {
@@ -86,7 +92,7 @@ public sealed class Plugin : IDalamudPlugin
                     output.Append(parts[i]);
                     continue;
                 }
-                var repair = model.RunKeepingStretches(parts[i], token);
+                var repair = model.RunKeeping(parts[i], keep, token);
                 if (parts[i].StartsWith(' ')) output.Append(' ');
                 output.Append(repair.Text);
                 if (parts[i].EndsWith(' ')) output.Append(' ');
@@ -117,6 +123,11 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnCommand(string command, string arguments)
     {
+        if (arguments.Trim().Equals("words", StringComparison.OrdinalIgnoreCase))
+        {
+            settings.Open();
+            return;
+        }
         configuration.Enabled = !configuration.Enabled;
         pluginInterface.SavePluginConfig(configuration);
         chat.Print($"[TypeMend] {(configuration.Enabled ? "On" : "Off: messages are sent as typed")}.");
@@ -127,6 +138,8 @@ public sealed class Plugin : IDalamudPlugin
         shutdown.Cancel();
         commands.RemoveHandler(Command);
         pluginInterface.UiBuilder.Draw -= preview.Draw;
+        pluginInterface.UiBuilder.Draw -= settings.Draw;
+        pluginInterface.UiBuilder.OpenConfigUi -= settings.Open;
         interceptor.Dispose();
         repairer?.Dispose();
         shutdown.Dispose();

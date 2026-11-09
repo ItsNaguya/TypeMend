@@ -7,4 +7,7 @@ public sealed class Configuration : IPluginConfiguration
 {
     public int Version { get; set; } = 1;
     public bool Enabled { get; set; } = true;
+
+    /// <summary>The writer's own names and game words that must stay as typed, separated by spaces, commas or lines.</summary>
+    public string NeverChange { get; set; } = string.Empty;
 }
