@@ -48,6 +48,45 @@ public static partial class ChatLine
     /// <summary>Splits text around game placeholders like &lt;t&gt;. Odd positions are placeholders.</summary>
     public static string[] SplitPlaceholders(string body) => Placeholder().Split(body);
 
+    /// <summary>The stretches (four or more of one letter in a row) in a text, in order.</summary>
+    public static List<string> Stretches(string text) => Stretch().Matches(text).Select(m => m.Value).ToList();
+
+    /// <summary>Shortens every stretch to three letters, the form the model can read.</summary>
+    public static string Collapse(string text) => Stretch().Replace(text, m => new string(m.Value[0], 3));
+
+    /// <summary>
+    /// Puts the typed stretches back into repaired text. Null when the model did not keep them one for one,
+    /// or changed the letters of a stretched word (it may only move a letter across a space).
+    /// </summary>
+    public static string? RestoreStretches(string repaired, List<string> stretches, string collapsedTyped)
+    {
+        var found = Shortened().Matches(repaired);
+        if (found.Count != stretches.Count) return null;
+        var typed = collapsedTyped.Replace(" ", string.Empty);
+        for (var i = 0; i < found.Count; i++)
+        {
+            if (char.ToLowerInvariant(found[i].Value[0]) != char.ToLowerInvariant(stretches[i][0])) return null;
+            int from = found[i].Index, to = from + found[i].Length;
+            while (from > 0 && char.IsLetter(repaired[from - 1])) from--;
+            while (to < repaired.Length && char.IsLetter(repaired[to])) to++;
+            if (!typed.Contains(repaired[from..to], StringComparison.OrdinalIgnoreCase)) return null;
+        }
+        var next = 0;
+        return Shortened().Replace(repaired, _ => stretches[next++]);
+    }
+
+    /// <summary>Splits text around whole words that contain a stretch. Odd positions are those words.</summary>
+    public static string[] SplitStretched(string text) => StretchedWord().Split(text);
+
     [GeneratedRegex(@"(<[^<>\s]+>)")]
     private static partial Regex Placeholder();
+
+    [GeneratedRegex(@"([a-z])\1{3,}", RegexOptions.IgnoreCase)]
+    private static partial Regex Stretch();
+
+    [GeneratedRegex(@"([a-z])\1{2,}", RegexOptions.IgnoreCase)]
+    private static partial Regex Shortened();
+
+    [GeneratedRegex(@"(\S*(?:a{4}|b{4}|c{4}|d{4}|e{4}|f{4}|g{4}|h{4}|i{4}|j{4}|k{4}|l{4}|m{4}|n{4}|o{4}|p{4}|q{4}|r{4}|s{4}|t{4}|u{4}|v{4}|w{4}|x{4}|y{4}|z{4})\S*)", RegexOptions.IgnoreCase)]
+    private static partial Regex StretchedWord();
 }

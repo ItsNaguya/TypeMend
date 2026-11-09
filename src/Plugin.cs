@@ -86,7 +86,7 @@ public sealed class Plugin : IDalamudPlugin
                     output.Append(parts[i]);
                     continue;
                 }
-                var repair = model.Run(parts[i], token);
+                var repair = model.RunKeepingStretches(parts[i], token);
                 if (parts[i].StartsWith(' ')) output.Append(' ');
                 output.Append(repair.Text);
                 if (parts[i].EndsWith(' ')) output.Append(' ');

@@ -71,6 +71,44 @@ public sealed class Repairer : IDisposable
         return new Repair(output.ToString(), unsure);
     }
 
+    /// <summary>
+    /// Repairs a text while keeping words stretched on purpose exactly as long as they were typed. The whole
+    /// sentence is repaired with shortened stretches; if those cannot be matched back, the stretched words stay as typed.
+    /// </summary>
+    public Repair RunKeepingStretches(string text, CancellationToken cancel = default)
+    {
+        var stretches = ChatLine.Stretches(text);
+        if (stretches.Count == 0) return Run(text, cancel);
+
+        var collapsed = ChatLine.Collapse(text);
+        var first = Run(collapsed, cancel);
+        var restored = ChatLine.RestoreStretches(first.Text, stretches, collapsed);
+        if (restored != null)
+        {
+            var marked = first.UnsureWords.ToHashSet();
+            var words = restored.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return new Repair(restored, words.Where(w => marked.Contains(w) || marked.Contains(ChatLine.Collapse(w))).ToList());
+        }
+
+        var output = new StringBuilder();
+        var unsure = new List<string>();
+        var parts = ChatLine.SplitStretched(text);
+        for (var i = 0; i < parts.Length; i++)
+        {
+            if (i % 2 == 1 || string.IsNullOrWhiteSpace(parts[i]))
+            {
+                output.Append(parts[i]);
+                continue;
+            }
+            var repair = Run(parts[i], cancel);
+            if (parts[i].StartsWith(' ')) output.Append(' ');
+            output.Append(repair.Text);
+            if (parts[i].EndsWith(' ')) output.Append(' ');
+            unsure.AddRange(repair.UnsureWords);
+        }
+        return new Repair(output.ToString(), unsure);
+    }
+
     /// <summary>Cuts long messages at spaces; the model is trained on up to about 370 letters.</summary>
     private static IEnumerable<string> Split(string text)
     {

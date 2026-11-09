@@ -29,6 +29,19 @@ Check("", false, "", "");
 var split = ChatLine.SplitPlaceholders("look at <t> now");
 if (split.Length != 3 || split[1] != "<t>") { failures++; Console.WriteLine("FAIL placeholders"); }
 Console.WriteLine(Repairer.CanRepair("plain words") && !Repairer.CanRepair("schön") ? "ok   CanRepair" : "FAIL CanRepair");
+void Stretch(string name, bool ok)
+{
+    if (!ok) failures++;
+    Console.WriteLine($"{(ok ? "ok  " : "FAIL")} stretch: {name}");
+}
+Stretch("collapse to three", ChatLine.Collapse("so SLEEEEEE and sooooo") == "so SLEEE and sooo");
+Stretch("three letters untouched", ChatLine.Stretches("yesss").Count == 0);
+string? Back(string repaired, string typed) => ChatLine.RestoreStretches(repaired, ChatLine.Stretches(typed), ChatLine.Collapse(typed));
+Stretch("restores in order", Back("i was sooo tired SLEEE", "wa ssoooooo SLEEEEEEEE") == "i was soooooo tired SLEEEEEEEE");
+Stretch("lost stretch is refused", Back("i was soo tired", "soooooo") == null);
+Stretch("wrong letter is refused", Back("mmm tired", "soooooo") == null);
+Stretch("changed word is refused", Back("SEEE xD", "SLEEEEEE xD") == null);
+Stretch("whole word split", ChatLine.SplitStretched("i SLEEEEE xD").SequenceEqual(new[] { "i ", "SLEEEEE", " xD" }));
 void Channel(string name, string prefix, ChatChannel held, ChatChannel now, bool expected)
 {
     var ok = ChatChannel.SafeToSend(prefix, held, now) == expected;
@@ -58,7 +71,7 @@ var times = new List<long>();
 foreach (var message in messages)
 {
     var timer = Stopwatch.StartNew();
-    var repair = repairer.Run(message);
+    var repair = repairer.RunKeepingStretches(message);
     times.Add(timer.ElapsedMilliseconds);
     Console.WriteLine($"OUT\t{repair.Text}\t{string.Join(" | ", repair.UnsureWords)}");
 }
