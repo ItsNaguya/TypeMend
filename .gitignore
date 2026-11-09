@@ -1,0 +1,10 @@
+bin/
+obj/
+*.user
+.vs/
+# Real messages from the writer are private and must never be committed.
+private/
+training/data/
+training/__pycache__/
+web/node_modules/
+web/deploy.local

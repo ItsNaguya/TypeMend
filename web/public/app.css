@@ -1,0 +1,47 @@
+/* TypeMend web: warm paper, ink and clay, like the rest of NaguSuite. */
+:root {
+  color-scheme: light;
+  --paper: #f4f1ea; --card: #fcfbf8; --ink: #22201c; --ink-2: #5d584f; --line: #e0dacd; --line-2: #cfc8b8;
+  --clay: #c4623f; --clay-hover: #ad532f; --on-clay: #fffaf5; --guess: rgba(196, 146, 40, .32);
+  --serif: 'Source Serif 4', 'Iowan Old Style', Georgia, serif; --sans: Inter, system-ui, sans-serif;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #1b1a17; --card: #24221f; --ink: #ede9e0; --ink-2: #b4aea2; --line: #34312c; --line-2: #45413a;
+  --clay: #d97757; --clay-hover: #e58a6b; --on-clay: #1b1a17; --guess: rgba(224, 180, 92, .3);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #1b1a17; --card: #24221f; --ink: #ede9e0; --ink-2: #b4aea2; --line: #34312c; --line-2: #45413a;
+    --clay: #d97757; --clay-hover: #e58a6b; --on-clay: #1b1a17; --guess: rgba(224, 180, 92, .3);
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; background: var(--paper); color: var(--ink); font: 16px/1.55 var(--sans); }
+.mast { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+.brand { font: 600 20px var(--serif); }
+.mast nav { display: flex; gap: 6px; }
+main { flex: 1; width: 100%; max-width: 860px; margin: 0 auto; padding: 36px 16px; }
+h1 { font: 600 clamp(26px, 5vw, 34px)/1.2 var(--serif); margin: 0 0 8px; }
+.lead { color: var(--ink-2); margin: 0 0 26px; }
+label { display: block; font-weight: 600; margin-bottom: 6px; }
+textarea { width: 100%; padding: 12px; font: 17px/1.5 var(--sans); color: inherit; background: var(--card); border: 1px solid var(--line-2); border-radius: 8px; resize: vertical; }
+textarea:focus, [contenteditable]:focus { outline: 2px solid var(--clay); outline-offset: 1px; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
+button { font: 600 15px var(--sans); padding: 9px 16px; color: var(--ink); background: var(--card); border: 1px solid var(--line-2); border-radius: 8px; cursor: pointer; }
+button:disabled { opacity: .55; cursor: default; }
+button.primary { color: var(--on-clay); background: var(--clay); border-color: var(--clay); }
+button.primary:hover:not(:disabled) { background: var(--clay-hover); }
+button.quiet { font-weight: 500; font-size: 14px; padding: 6px 10px; background: none; border-color: transparent; color: var(--ink-2); }
+.status { color: var(--ink-2); font-size: 14px; }
+#result { margin-top: 30px; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.card { padding: 14px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+.card h2 { font: 600 13px var(--sans); color: var(--ink-2); margin: 0 0 8px; }
+.card p { margin: 0; font-size: 17px; white-space: pre-wrap; overflow-wrap: anywhere; min-height: 1.5em; border-radius: 4px; }
+mark { background: var(--guess); color: inherit; border-radius: 3px; padding: 0 2px; }
+.note { color: var(--ink-2); font-size: 14px; margin: 10px 0 0; }
+.foot { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 20px; padding: 18px 16px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 13px; }
+.foot a { color: inherit; }
+@media (max-width: 640px) { .pair { grid-template-columns: 1fr; } }

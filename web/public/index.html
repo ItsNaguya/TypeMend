@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TypeMend</title>
+<meta name="description" content="Repairs typing on your own device. You see your words and the repair side by side.">
+<link rel="icon" href="favicon.svg">
+<script src="theme.js"></script>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="mast">
+  <span class="brand">TypeMend</span>
+  <nav>
+    <button id="lang" class="quiet" type="button">Deutsch</button>
+    <button id="theme" class="quiet" type="button" data-i18n="theme">Light / dark</button>
+  </nav>
+</header>
+
+<main>
+  <h1 data-i18n="title">Your words, typed the way you meant them.</h1>
+  <p class="lead" data-i18n="lead">TypeMend repairs typing and nothing else. It keeps your meaning, slang and tone, and it never cleans up what you said.</p>
+
+  <label for="input" data-i18n="typedLabel">What you typed</label>
+  <textarea id="input" rows="4" spellcheck="false" autocomplete="off" autofocus></textarea>
+  <div class="row">
+    <button id="go" class="primary" type="button" disabled data-i18n="repair">Repair</button>
+    <span id="status" class="status" role="status" data-i18n="loading">Getting the repair model ready...</span>
+  </div>
+
+  <section id="result" hidden aria-live="polite">
+    <div class="pair">
+      <div class="card">
+        <h2 data-i18n="youTyped">You typed</h2>
+        <p id="typed"></p>
+      </div>
+      <div class="card">
+        <h2 data-i18n="repaired">Repaired (you can edit this)</h2>
+        <p id="repairedText" contenteditable="plaintext-only" spellcheck="false"></p>
+      </div>
+    </div>
+    <p id="guessNote" class="note" hidden data-i18n="guesses">Highlighted words are guesses. Please check them.</p>
+    <div class="row">
+      <button id="copy" class="primary" type="button" data-i18n="copy">Copy repair</button>
+      <button id="copyBoth" type="button" data-i18n="copyBoth">Copy repair and original</button>
+      <span id="copied" class="status" role="status"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <span data-i18n="foot1">Runs on your own device. Nothing is uploaded.</span>
+  <span data-i18n="foot2">No accounts, no tracking.</span>
+  <a href="licenses.html" data-i18n="foot3">Licences and credits</a>
+  <a href="https://naguya.tech/" data-i18n="foot4">NaguSuite: more free tools</a>
+</footer>
+<script src="i18n.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
