@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="..\..\src\Repairer.cs" Link="Repairer.cs" />
     <Compile Include="..\..\src\ChatLine.cs" Link="ChatLine.cs" />
+    <Compile Include="..\..\src\ChatChannel.cs" Link="ChatChannel.cs" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.23.2" />
   </ItemGroup>
 </Project>

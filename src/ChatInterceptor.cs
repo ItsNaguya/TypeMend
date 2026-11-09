@@ -2,6 +2,7 @@ using Dalamud.Hooking;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 
 namespace TypeMend;
 
@@ -38,6 +39,13 @@ public sealed unsafe class ChatInterceptor : IDisposable
             log.Error(e, "TypeMend could not read a chat line; it was sent unchanged.");
         }
         hook.Original(module, message, a4, saveToHistory);
+    }
+
+    /// <summary>The channel the game would use right now for a line without its own channel command.</summary>
+    public ChatChannel CurrentChannel()
+    {
+        var shell = RaptureShellModule.Instance();
+        return new ChatChannel(shell->ChatType, shell->TellName.ToString(), shell->TellWorldId, shell->ContentId);
     }
 
     /// <summary>Sends a line through the game. Must be called on the framework thread.</summary>

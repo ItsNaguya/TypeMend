@@ -14,26 +14,40 @@ public sealed class PreviewWindow
     private static readonly Vector4 Problem = new(1f, 0.4f, 0.4f, 1f);
     private static readonly TimeSpan EnterGuard = TimeSpan.FromMilliseconds(350);
 
-    private readonly Action<string, bool> send;
+    private readonly Action<string, bool, string, ChatChannel> send;
 
-    private string typed = string.Empty, prefix = string.Empty, edited = string.Empty, error = string.Empty;
+    private string typed = string.Empty, prefix = string.Empty, edited = string.Empty, error = string.Empty, refused = string.Empty;
     private HashSet<string> unsure = new();
-    private bool saveToHistory, ready, focus;
+    private bool saveToHistory, ready, focus, sending;
+    private ChatChannel channel;
     private readonly Stopwatch shown = new();
 
-    public PreviewWindow(Action<string, bool> send) => this.send = send;
+    public PreviewWindow(Action<string, bool, string, ChatChannel> send) => this.send = send;
 
     public bool IsOpen { get; private set; }
 
-    public void Open(string line, string linePrefix, bool history)
+    public void Open(string line, string linePrefix, bool history, ChatChannel heldChannel)
     {
         typed = line;
         prefix = linePrefix;
         saveToHistory = history;
-        edited = error = string.Empty;
+        channel = heldChannel;
+        edited = error = refused = string.Empty;
         unsure = new();
-        ready = false;
+        ready = sending = false;
         IsOpen = true;
+    }
+
+    public void SendDone()
+    {
+        sending = false;
+        IsOpen = false;
+    }
+
+    public void SendRefused(string message)
+    {
+        refused = message;
+        sending = false;
     }
 
     public void SetResult(string repairedBody, IEnumerable<string> unsureWords)
@@ -114,12 +128,14 @@ public sealed class PreviewWindow
         if (ImGui.Button("Cancel (Esc)") || ImGui.IsKeyPressed(ImGuiKey.Escape)) IsOpen = false;
 
         if (tooLong) ImGui.TextColored(Problem, $"Too long for chat: {bytes} of {ChatByteLimit} bytes.");
+        if (refused.Length > 0) ImGui.TextColored(Problem, refused);
     }
 
     private void TrySend(string line)
     {
-        if (Encoding.UTF8.GetByteCount(line) > ChatByteLimit) return;
-        IsOpen = false;
-        send(line, saveToHistory);
+        if (sending || Encoding.UTF8.GetByteCount(line) > ChatByteLimit) return;
+        sending = true;
+        refused = string.Empty;
+        send(line, saveToHistory, prefix, channel);
     }
 }

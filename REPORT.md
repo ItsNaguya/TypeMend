@@ -58,4 +58,6 @@ The gain on the newest 10 is about 5 words out of 374, too small to tell from ch
 ## Not tested
 
 - Nothing has run inside FFXIV yet: not the chat hook, the preview window, or loading ONNX Runtime in the game process.
+- The wrong-channel safeguard has only had its decision logic tested outside the game. In game, check a line held in say, then a channel switch before confirming: it must refuse and keep the text. If the writer uses XIVInstantMessenger, also test a tell in Eureka or Bozja.
+- Other plugins that send chat also pass through TypeMend. A message split in two by another plugin can arrive out of order while the first part waits in the preview.
 - The web page is live at https://typemend.naguya.tech/ as an unlisted test (noindex, not on the NaguSuite page).

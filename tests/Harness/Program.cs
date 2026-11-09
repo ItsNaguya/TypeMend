@@ -29,6 +29,21 @@ Check("", false, "", "");
 var split = ChatLine.SplitPlaceholders("look at <t> now");
 if (split.Length != 3 || split[1] != "<t>") { failures++; Console.WriteLine("FAIL placeholders"); }
 Console.WriteLine(Repairer.CanRepair("plain words") && !Repairer.CanRepair("schön") ? "ok   CanRepair" : "FAIL CanRepair");
+void Channel(string name, string prefix, ChatChannel held, ChatChannel now, bool expected)
+{
+    var ok = ChatChannel.SafeToSend(prefix, held, now) == expected;
+    if (!ok) failures++;
+    Console.WriteLine($"{(ok ? "ok  " : "FAIL")} channel: {name}");
+}
+var say = new ChatChannel(1, "", 0, 0);
+var fc = new ChatChannel(6, "", 0, 0);
+var tellOne = new ChatChannel(0, "Some Name", 21, 111);
+var tellOther = new ChatChannel(0, "Other Name", 21, 222);
+Channel("same channel sends", "", say, say, true);
+Channel("tell then back to say is refused", "", tellOne, say, false);
+Channel("say then free company is refused", "", say, fc, false);
+Channel("tell to a different person is refused", "", tellOne, tellOther, false);
+Channel("own channel command ignores the switch", "/p ", say, fc, true);
 Console.WriteLine($"chat line failures: {failures}");
 
 var directory = args[0];

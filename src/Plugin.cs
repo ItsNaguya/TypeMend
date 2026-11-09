@@ -66,7 +66,7 @@ public sealed class Plugin : IDalamudPlugin
         if (!configuration.Enabled || model == null || preview.IsOpen) return false;
         if (!ChatLine.TrySplit(line, out var prefix, out var body) || !Repairer.CanRepair(body)) return false;
 
-        preview.Open(line, prefix, saveToHistory);
+        preview.Open(line, prefix, saveToHistory, interceptor.CurrentChannel());
         var token = shutdown.Token;
         Task.Run(() => RepairBody(model, body, token), token);
         return true;
@@ -104,10 +104,15 @@ public sealed class Plugin : IDalamudPlugin
         }
     }
 
-    private void Send(string line, bool saveToHistory) => framework.RunOnFrameworkThread(() =>
+    /// <summary>The window stays open until this has run, so a refused line is never lost.</summary>
+    private void Send(string line, bool saveToHistory, string prefix, ChatChannel heldChannel) => framework.RunOnFrameworkThread(() =>
     {
-        if (!interceptor.Send(line, saveToHistory))
-            chat.PrintError("[TypeMend] The game would not accept that text, so nothing was sent.");
+        if (!ChatChannel.SafeToSend(prefix, heldChannel, interceptor.CurrentChannel()))
+            preview.SendRefused("Not sent: your chat channel changed after you wrote this. Switch back to send it, or copy it from the box above.");
+        else if (interceptor.Send(line, saveToHistory))
+            preview.SendDone();
+        else
+            preview.SendRefused("The game would not accept that text, so nothing was sent.");
     });
 
     private void OnCommand(string command, string arguments)
