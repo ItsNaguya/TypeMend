@@ -1,0 +1,67 @@
+name: Build and publish the plugin
+
+# Every push to main builds TypeMend and puts latest.zip + pluginmaster.json on the "repo" branch,
+# which is what Dalamud reads as a custom plugin repository.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Download Dalamud
+        run: |
+          Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile dalamud.zip
+          Expand-Archive -Force dalamud.zip "$env:AppData\XIVLauncher\addon\Hooks\dev\"
+
+      - name: Build
+        run: dotnet build TypeMend.csproj -c Release
+
+      - name: Write pluginmaster.json
+        run: |
+          $m = Get-Content "TypeMend.json" -Raw | ConvertFrom-Json
+          $raw = "https://raw.githubusercontent.com/${{ github.repository }}"
+          $entry = [ordered]@{
+            Author = $m.Author
+            Name = $m.Name
+            InternalName = $m.InternalName
+            AssemblyVersion = $m.AssemblyVersion
+            Punchline = $m.Punchline
+            Description = $m.Description
+            Tags = $m.Tags
+            RepoUrl = "https://github.com/${{ github.repository }}"
+            IconUrl = "$raw/main/images/icon.png"
+            ApplicableVersion = "any"
+            DalamudApiLevel = $m.DalamudApiLevel
+            LoadRequiredState = 0
+            LoadSync = $false
+            LoadPriority = 0
+            DownloadCount = 0
+            LastUpdate = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+            DownloadLinkInstall = "$raw/repo/latest.zip"
+            DownloadLinkUpdate = "$raw/repo/latest.zip"
+            DownloadLinkTesting = "$raw/repo/latest.zip"
+          }
+          "[" + (ConvertTo-Json -InputObject $entry -Depth 5) + "]" | Set-Content -Encoding utf8 "bin/Release/TypeMend/pluginmaster.json"
+
+      - name: Publish to the repo branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          Copy-Item bin/Release/TypeMend/latest.zip, bin/Release/TypeMend/pluginmaster.json $env:RUNNER_TEMP
+          git checkout --orphan repo
+          git rm -rf --quiet .
+          Copy-Item "$env:RUNNER_TEMP/latest.zip", "$env:RUNNER_TEMP/pluginmaster.json" .
+          git add latest.zip pluginmaster.json
+          git commit -m "Publish TypeMend ${{ github.sha }}"
+          git push -f origin repo

@@ -24,7 +24,22 @@ Two front ends share one small model (22 MB, CPU only):
 dotnet build TypeMend.csproj -c Release
 ```
 
-The install package is `bin/Release/TypeMend/latest.zip`. For a test install, add `bin/Release/TypeMend.dll` under Dalamud's Dev Plugin Locations.
+## Install in the game
+
+1. In game, type `/xlsettings` and open the **Experimental** tab.
+2. Under **Custom Plugin Repositories**, paste this link, press **+**, tick **Enabled**, then **Save and Close**:
+
+   ```
+   https://raw.githubusercontent.com/ItsNaguya/TypeMend/repo/pluginmaster.json
+   ```
+
+3. Type `/xlplugins`, search for **TypeMend** and press **Install**. Updates come the same way.
+
+Everything runs on your own PC; no text is sent anywhere. The download is about 22 MB.
+
+## Build
+
+`dotnet build -c Release` makes `bin/Release/TypeMend/latest.zip`. For a test install, add `bin/Release/TypeMend.dll` under Dalamud's Dev Plugin Locations. Each push to `main` builds and publishes the plugin to the `repo` branch (`.github/workflows/build.yml`).
 
 ## Web hosting
 
