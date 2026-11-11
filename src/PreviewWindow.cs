@@ -20,11 +20,16 @@ public sealed class PreviewWindow
     private HashSet<string> unsure = new();
     private bool saveToHistory, ready, focus, sending;
     private ChatChannel channel;
+    private string repairShown = string.Empty;
+    private string? sentRepair;
     private readonly Stopwatch shown = new();
 
     public PreviewWindow(Action<string, bool, string, ChatChannel> send) => this.send = send;
 
     public bool IsOpen { get; private set; }
+
+    /// <summary>Called after a repair went out: the repair as shown, then the text actually sent.</summary>
+    public Action<string, string>? RepairSent { get; init; }
 
     public void Open(string line, string linePrefix, bool history, ChatChannel heldChannel)
     {
@@ -42,6 +47,8 @@ public sealed class PreviewWindow
     {
         sending = false;
         IsOpen = false;
+        if (sentRepair != null && sentRepair != repairShown) RepairSent?.Invoke(repairShown, sentRepair);
+        sentRepair = null;
     }
 
     public void SendRefused(string message)
@@ -52,7 +59,7 @@ public sealed class PreviewWindow
 
     public void SetResult(string repairedBody, IEnumerable<string> unsureWords)
     {
-        edited = repairedBody;
+        edited = repairShown = repairedBody;
         unsure = new(unsureWords);
         ready = focus = true;
         shown.Restart();
@@ -111,7 +118,7 @@ public sealed class PreviewWindow
         }
         ImGui.SetNextItemWidth(530);
         if (ImGui.InputText("##edit", ref edited, 800, ImGuiInputTextFlags.EnterReturnsTrue) && shown.Elapsed > EnterGuard)
-            TrySend(prefix + edited);
+            TrySend(prefix + edited, true);
     }
 
     private void DrawButtons()
@@ -120,10 +127,10 @@ public sealed class PreviewWindow
         var tooLong = bytes > ChatByteLimit;
 
         ImGui.BeginDisabled(!ready || error.Length > 0 || tooLong);
-        if (ImGui.Button("Send repair (Enter)")) TrySend(prefix + edited);
+        if (ImGui.Button("Send repair (Enter)")) TrySend(prefix + edited, true);
         ImGui.EndDisabled();
         ImGui.SameLine();
-        if (ImGui.Button("Send as typed")) TrySend(typed);
+        if (ImGui.Button("Send as typed")) TrySend(typed, false);
         ImGui.SameLine();
         if (ImGui.Button("Cancel (Esc)") || ImGui.IsKeyPressed(ImGuiKey.Escape)) IsOpen = false;
 
@@ -131,11 +138,12 @@ public sealed class PreviewWindow
         if (refused.Length > 0) ImGui.TextColored(Problem, refused);
     }
 
-    private void TrySend(string line)
+    private void TrySend(string line, bool isRepair)
     {
         if (sending || Encoding.UTF8.GetByteCount(line) > ChatByteLimit) return;
         sending = true;
         refused = string.Empty;
+        sentRepair = isRepair ? edited : null;
         send(line, saveToHistory, prefix, channel);
     }
 }

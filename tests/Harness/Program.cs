@@ -49,6 +49,20 @@ Stretch("keep matches any case", keepPattern.Matches("saw zyrielle, in LIMSA").S
 Stretch("keep needs the whole word", !keepPattern.IsMatch("limsas zyriellea"));
 Stretch("keep handles an apostrophe", keepPattern.IsMatch("off to ul'dah now"));
 Stretch("empty keep list", ChatLine.KeepPattern(new List<string>()) == null);
+var store = new Dictionary<string, LearnedWord>();
+var mem = new CorrectionMemory(store);
+mem.Learn("that dress is so lawd on you", "that dress is so lewd on you");
+Stretch("one fix is only remembered", mem.Apply("so lawd lol") == "so lawd lol" && store["lawd"].Count == 1);
+mem.Learn("that was lawd", "that was lewd");
+Stretch("second fix puts it in use", mem.Apply("so lawd lol, Lawd!") == "so lewd lol, Lewd!");
+Stretch("rewording is not learned", !mem.Learn("i went to the shop", "i walked to the market") && !store.ContainsKey("went"));
+Stretch("whole new sentence is not learned", !mem.Learn("ok see you", "nah i will stay here a while longer") && store.Count == 1);
+mem.Learn("he is so lewd", "he is so lawd");
+Stretch("changing it back unlearns it", !store.ContainsKey("lawd") && mem.Apply("so lawd") == "so lawd");
+mem.Learn("becouse i said", "because i said"); mem.Learn("becouse no", "because no");
+Stretch("two fixes in one message", mem.Learn("eather way and witch one", "either way and which one") && store["eather"].Count == 1 && store["witch"].Count == 1);
+mem.Forget("becouse"); Stretch("forget one", mem.Apply("becouse") == "becouse");
+mem.ForgetAll(); Stretch("forget all", store.Count == 0);
 void Channel(string name, string prefix, ChatChannel held, ChatChannel now, bool expected)
 {
     var ok = ChatChannel.SafeToSend(prefix, held, now) == expected;

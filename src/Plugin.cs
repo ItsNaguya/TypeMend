@@ -18,6 +18,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly Configuration configuration;
     private readonly PreviewWindow preview;
     private readonly SettingsWindow settings;
+    private readonly CorrectionMemory memory;
     private readonly ChatInterceptor interceptor;
     private readonly CancellationTokenSource shutdown = new();
     private volatile Repairer? repairer;
@@ -36,10 +37,17 @@ public sealed class Plugin : IDalamudPlugin
         this.chat = chat;
         this.log = log;
         configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-        preview = new PreviewWindow(Send);
+        memory = new CorrectionMemory(configuration.Corrections);
+        preview = new PreviewWindow(Send)
+        {
+            RepairSent = (shown, sent) =>
+            {
+                if (memory.Learn(shown, sent)) pluginInterface.SavePluginConfig(configuration);
+            },
+        };
         interceptor = new ChatInterceptor(interop, log, OnChatLine);
 
-        settings = new SettingsWindow(configuration, () => pluginInterface.SavePluginConfig(configuration));
+        settings = new SettingsWindow(configuration, memory, () => pluginInterface.SavePluginConfig(configuration));
 
         commands.AddHandler(Command, new CommandInfo(OnCommand) { HelpMessage = "Turns TypeMend on or off. /typemend words opens your never-change word list." });
         pluginInterface.UiBuilder.Draw += preview.Draw;
@@ -93,10 +101,12 @@ public sealed class Plugin : IDalamudPlugin
                     continue;
                 }
                 var repair = model.RunKeeping(parts[i], keep, token);
+                var learned = memory.Apply(repair.Text);
                 if (parts[i].StartsWith(' ')) output.Append(' ');
-                output.Append(repair.Text);
+                output.Append(learned);
                 if (parts[i].EndsWith(' ')) output.Append(' ');
-                unsure.AddRange(repair.UnsureWords);
+                var words = learned.Split(' ');
+                unsure.AddRange(repair.UnsureWords.Where(words.Contains));
             }
             preview.SetResult(output.ToString(), unsure);
         }
