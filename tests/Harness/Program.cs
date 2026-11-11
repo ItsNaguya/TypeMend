@@ -28,6 +28,8 @@ Check("12345 ...", false, "", "");
 Check("", false, "", "");
 var split = ChatLine.SplitPlaceholders("look at <t> now");
 if (split.Length != 3 || split[1] != "<t>") { failures++; Console.WriteLine("FAIL placeholders"); }
+var marks = ChatLine.SplitPlaceholders("~purrs softly~ ((brb))");
+Console.WriteLine($"{(marks.SequenceEqual(new[] { "", "~", "purrs softly", "~", " ", "((", "brb", "))", "" }) ? "ok  " : "FAIL")} roleplay marks kept: [{string.Join("|", marks)}]");
 Console.WriteLine(Repairer.CanRepair("plain words") && !Repairer.CanRepair("schön") ? "ok   CanRepair" : "FAIL CanRepair");
 void Stretch(string name, bool ok)
 {
@@ -92,7 +94,7 @@ var times = new List<long>();
 foreach (var message in messages)
 {
     var timer = Stopwatch.StartNew();
-    var repair = repairer.RunKeepingStretches(message);
+    var repair = repairer.RunKeeping(message, ChatLine.RoleplayWords);
     times.Add(timer.ElapsedMilliseconds);
     Console.WriteLine($"OUT\t{repair.Text}\t{string.Join(" | ", repair.UnsureWords)}");
 }

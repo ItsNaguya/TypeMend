@@ -73,7 +73,9 @@ async function repairRun(run, unsure) {
 const STRETCH = /([a-z])\1{3,}/gi, SHORTENED = /([a-z])\1{2,}/gi;
 const collapse = (t) => t.replace(STRETCH, (m) => m[0].repeat(3));
 const STRETCHED_WORD = new RegExp(`(\\S*(?:${[...'abcdefghijklmnopqrstuvwxyz'].map((c) => `${c}{4}`).join('|')})\\S*)`, 'i');
-const KEPT = /(\S*[^\x20-\x7e]\S*|\n+|<[^<>\s]+>)/;
+const KEPT = /(\S*[^\x20-\x7e]\S*|\n+|<[^<>\s]+>|~+|\(\(+|\)\)+)/;
+// Roleplay words kept exactly as typed when spelled like this. Same list as the plugin's ChatLine.RoleplayWords.
+const ROLEPLAY = ['aftercare', 'safeword', 'safewords', 'crop', 'thigh', 'thighs', 'collar', 'collared', 'leash', 'gag', 'gagged', 'cuffs', 'cuffed', 'rope', 'ropes', 'shibari', 'blindfold', 'blindfolded', 'restraints', 'restrained', 'kneel', 'kneels', 'kneeling', 'whimper', 'whimpers', 'squirm', 'squirms', 'spank', 'spanks', 'spanking', 'Mistress', 'Master', 'Sir', 'Daddy', 'Mommy', 'pet', 'pup', 'puppy', 'kitten', 'brat', 'bratty', 'subspace', 'dom', 'domme', 'sub', 'switch', 'ooc', 'brb', 'afk', 'mmph', 'mmm', 'nngh', 'hnng', 'mhm', 'purr', 'purrs', 'nuzzle', 'nuzzles', 'smirk', 'smirks'];
 
 // Repairs the parts between kept ones; kept parts sit at odd positions after split().
 async function around(text, kept, inner, unsure) {
@@ -137,7 +139,7 @@ async function repairKeepingNames(run, unsure) {
 
 // Anything the model does not know (umlauts, emoji, line breaks, <placeholders>) is passed through untouched.
 async function repair(text, keep) {
-  setKeepWords(keep);
+  setKeepWords([...(keep || []), ...ROLEPLAY]);
   const unsure = [];
   return { text: await around(text, KEPT, repairKeepingNames, unsure), unsure };
 }

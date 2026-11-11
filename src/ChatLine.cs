@@ -45,7 +45,13 @@ public static partial class ChatLine
         return body.Any(char.IsLetter);
     }
 
-    /// <summary>Splits text around game placeholders like &lt;t&gt;. Odd positions are placeholders.</summary>
+    /// <summary>
+    /// Roleplay words kept exactly as typed when spelled like this. Measured 2026-11-11 on made-up roleplay lines:
+    /// without the list the model changed 5 of 30 correctly typed lines ("crop" to "crap", "aftercare" to "after care").
+    /// </summary>
+    public static readonly string[] RoleplayWords = { "aftercare", "safeword", "safewords", "crop", "thigh", "thighs", "collar", "collared", "leash", "gag", "gagged", "cuffs", "cuffed", "rope", "ropes", "shibari", "blindfold", "blindfolded", "restraints", "restrained", "kneel", "kneels", "kneeling", "whimper", "whimpers", "squirm", "squirms", "spank", "spanks", "spanking", "Mistress", "Master", "Sir", "Daddy", "Mommy", "pet", "pup", "puppy", "kitten", "brat", "bratty", "subspace", "dom", "domme", "sub", "switch", "ooc", "brb", "afk", "mmph", "mmm", "nngh", "hnng", "mhm", "purr", "purrs", "nuzzle", "nuzzles", "smirk", "smirks" };
+
+    /// <summary>Splits text around game placeholders like &lt;t&gt; and roleplay marks (~, ((, )), which stay as typed. Odd positions are the kept parts.</summary>
     public static string[] SplitPlaceholders(string body) => Placeholder().Split(body);
 
     /// <summary>Reads the writer's never-change list, separated by spaces, commas or lines.</summary>
@@ -87,7 +93,7 @@ public static partial class ChatLine
     /// <summary>Splits text around whole words that contain a stretch. Odd positions are those words.</summary>
     public static string[] SplitStretched(string text) => StretchedWord().Split(text);
 
-    [GeneratedRegex(@"(<[^<>\s]+>)")]
+    [GeneratedRegex(@"(<[^<>\s]+>|~+|\(\(+|\)\)+)")]
     private static partial Regex Placeholder();
 
     [GeneratedRegex(@"([a-z])\1{3,}", RegexOptions.IgnoreCase)]

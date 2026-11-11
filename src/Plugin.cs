@@ -92,6 +92,7 @@ public sealed class Plugin : IDalamudPlugin
             var output = new StringBuilder();
             var unsure = new List<string>();
             var keep = ChatLine.ParseKeepWords(configuration.NeverChange);
+            if (configuration.KeepRoleplayWords) keep = keep.Concat(ChatLine.RoleplayWords).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
             var parts = ChatLine.SplitPlaceholders(body);
             for (var i = 0; i < parts.Length; i++)
             {

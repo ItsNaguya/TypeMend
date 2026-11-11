@@ -39,6 +39,12 @@ public sealed class SettingsWindow
                 configuration.NeverChange = words;
                 save();
             }
+            var roleplay = configuration.KeepRoleplayWords;
+            if (ImGui.Checkbox("Also keep common roleplay words (collar, safeword, aftercare, ...)", ref roleplay))
+            {
+                configuration.KeepRoleplayWords = roleplay;
+                save();
+            }
 
             ImGui.Spacing();
             ImGui.Separator();
