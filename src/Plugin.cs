@@ -115,7 +115,7 @@ public sealed class Plugin : IDalamudPlugin
     {
         if (!ChatChannel.SafeToSend(prefix, heldChannel, interceptor.CurrentChannel()))
             preview.SendRefused("Not sent: your chat channel changed after you wrote this. Switch back to send it, or copy it from the box above.");
-        else if (interceptor.Send(line, saveToHistory))
+        else if (interceptor.Send(line))
             preview.SendDone();
         else
             preview.SendRefused("The game would not accept that text, so nothing was sent.");

@@ -74,7 +74,7 @@ The current model's figure for the newest 10 is 80.9% here because this script d
 
 ## Not tested
 
-- Nothing has run inside FFXIV yet: not the chat hook, the preview window, or loading ONNX Runtime in the game process.
+- In game (2026-11-11): the model loads, typed chat is caught (hook on ShellCommandModule.ExecuteCommandInner) and Send works. Not yet checked in game: macros passing straight through, the channel safeguard, the never-change list window.
 - The wrong-channel safeguard has only had its decision logic tested outside the game. In game, check a line held in say, then a channel switch before confirming: it must refuse and keep the text. If the writer uses XIVInstantMessenger, also test a tell in Eureka or Bozja.
 - Other plugins that send chat also pass through TypeMend. A message split in two by another plugin can arrive out of order while the first part waits in the preview.
 - The web page is live at https://typemend.naguya.tech/ as an unlisted test (noindex, not on the NaguSuite page).
