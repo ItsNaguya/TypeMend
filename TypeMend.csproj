@@ -21,6 +21,7 @@
   <ItemGroup>
     <Compile Include="src\**\*.cs" />
     <Content Include="model\*.onnx" CopyToOutputDirectory="PreserveNewest" Link="model\%(Filename)%(Extension)" />
+    <Content Include="images\icon.png" CopyToOutputDirectory="PreserveNewest" Link="images\icon.png" />
   </ItemGroup>
 
   <ItemGroup>

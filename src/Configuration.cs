@@ -14,6 +14,12 @@ public sealed class Configuration : IPluginConfiguration
     /// <summary>Also keep the built-in roleplay words (collar, safeword, aftercare, ...) when typed exactly.</summary>
     public bool KeepRoleplayWords { get; set; } = true;
 
+    /// <summary>Shows the short how-to line under the preview buttons.</summary>
+    public bool ShowTips { get; set; } = true;
+
+    /// <summary>The welcome note was read; the main window no longer opens by itself on load.</summary>
+    public bool SeenWelcome { get; set; }
+
     /// <summary>Corrections learned from the writer's own fixes in the preview, keyed by the word the model wrote.</summary>
     public Dictionary<string, LearnedWord> Corrections { get; set; } = new();
 }

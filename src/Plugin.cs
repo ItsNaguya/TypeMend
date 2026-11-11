@@ -22,6 +22,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly ChatInterceptor interceptor;
     private readonly CancellationTokenSource shutdown = new();
     private volatile Repairer? repairer;
+    private volatile string modelState = "Loading...";
 
     public Plugin(
         IDalamudPluginInterface pluginInterface,
@@ -44,15 +45,21 @@ public sealed class Plugin : IDalamudPlugin
             {
                 if (memory.Learn(shown, sent)) pluginInterface.SavePluginConfig(configuration);
             },
+            HideTips = () =>
+            {
+                configuration.ShowTips = false;
+                pluginInterface.SavePluginConfig(configuration);
+            },
         };
         interceptor = new ChatInterceptor(interop, log, OnChatLine);
 
-        settings = new SettingsWindow(configuration, memory, () => pluginInterface.SavePluginConfig(configuration));
+        settings = new SettingsWindow(configuration, memory, () => pluginInterface.SavePluginConfig(configuration), () => modelState);
 
-        commands.AddHandler(Command, new CommandInfo(OnCommand) { HelpMessage = "Turns TypeMend on or off. /typemend words opens your never-change word list." });
-        pluginInterface.UiBuilder.Draw += preview.Draw;
-        pluginInterface.UiBuilder.Draw += settings.Draw;
+        commands.AddHandler(Command, new CommandInfo(OnCommand) { HelpMessage = "Opens TypeMend. /typemend on or off turns repairs on or off; /typemend words opens your never-change list." });
+        pluginInterface.UiBuilder.Draw += Draw;
         pluginInterface.UiBuilder.OpenConfigUi += settings.Open;
+        pluginInterface.UiBuilder.OpenMainUi += settings.Open;
+        if (!configuration.SeenWelcome) settings.Open();
 
         var directory = pluginInterface.AssemblyLocation.DirectoryName!;
         Task.Run(() => LoadModel(directory));
@@ -63,10 +70,12 @@ public sealed class Plugin : IDalamudPlugin
         try
         {
             repairer = new Repairer(directory, ModelThreads);
+            modelState = "Ready, running on this PC";
             log.Information("TypeMend model loaded.");
         }
         catch (Exception e)
         {
+            modelState = "Could not load, so messages go out as typed. See /xllog.";
             log.Error(e, "TypeMend could not load its model.");
             framework.RunOnFrameworkThread(() => chat.PrintError("[TypeMend] The repair model could not load, so your messages will be sent as typed."));
         }
@@ -132,25 +141,52 @@ public sealed class Plugin : IDalamudPlugin
             preview.SendRefused("The game would not accept that text, so nothing was sent.");
     });
 
+    private void Draw()
+    {
+        preview.ShowTips = configuration.ShowTips;
+        preview.Draw();
+        settings.Draw();
+    }
+
     private void OnCommand(string command, string arguments)
     {
-        if (arguments.Trim().Equals("words", StringComparison.OrdinalIgnoreCase))
+        switch (arguments.Trim().ToLowerInvariant())
         {
-            settings.Open();
-            return;
+            case "words":
+                settings.Open(SettingsWindow.Tab.NeverChange);
+                break;
+            case "on":
+                SetEnabled(true);
+                break;
+            case "off":
+                SetEnabled(false);
+                break;
+            case "toggle":
+                SetEnabled(!configuration.Enabled);
+                break;
+            case "":
+                settings.Open();
+                break;
+            default:
+                chat.Print("[TypeMend] Use /typemend, /typemend on, /typemend off or /typemend words.");
+                break;
         }
-        configuration.Enabled = !configuration.Enabled;
+    }
+
+    private void SetEnabled(bool on)
+    {
+        configuration.Enabled = on;
         pluginInterface.SavePluginConfig(configuration);
-        chat.Print($"[TypeMend] {(configuration.Enabled ? "On" : "Off: messages are sent as typed")}.");
+        chat.Print(on ? "[TypeMend] On: you will see a preview before each message." : "[TypeMend] Off: messages are sent as typed.");
     }
 
     public void Dispose()
     {
         shutdown.Cancel();
         commands.RemoveHandler(Command);
-        pluginInterface.UiBuilder.Draw -= preview.Draw;
-        pluginInterface.UiBuilder.Draw -= settings.Draw;
+        pluginInterface.UiBuilder.Draw -= Draw;
         pluginInterface.UiBuilder.OpenConfigUi -= settings.Open;
+        pluginInterface.UiBuilder.OpenMainUi -= settings.Open;
         interceptor.Dispose();
         repairer?.Dispose();
         shutdown.Dispose();
