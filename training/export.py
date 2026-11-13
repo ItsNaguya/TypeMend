@@ -26,7 +26,9 @@ def main():
     torch.onnx.export(e, (x,), f"{work}/enc.onnx", input_names=["x"], output_names=["m"], dynamic_axes={"x": {1: "n"}, "m": {1: "n"}}, **kw)
     torch.onnx.export(d, (y, m), f"{work}/dec.onnx", input_names=["y", "m"], output_names=["o"], dynamic_axes={"y": {1: "k"}, "m": {1: "n"}}, **kw)
     for name in ("enc", "dec"):
-        quantize_dynamic(f"{work}/{name}.onnx", f"{work}/{name}.q.onnx", weight_type=QuantType.QInt8)
+        # reduce_range (7-bit weights): with full 8-bit weights, CPUs without VNNI (e.g. Ryzen 5000) overflow
+        # in ONNX Runtime's int8 math and the repair turns to garbage. Measured 2026-11-13 with cpu_check.py.
+        quantize_dynamic(f"{work}/{name}.onnx", f"{work}/{name}.q.onnx", weight_type=QuantType.QInt8, reduce_range=True)
     net.eval()
 
     options = ort.SessionOptions(); options.intra_op_num_threads = 2
