@@ -17,6 +17,9 @@ public sealed class Configuration : IPluginConfiguration
     /// <summary>Keep the built-in English and German swear words when typed exactly, and repair their typos.</summary>
     public bool KeepSwearWords { get; set; } = true;
 
+    /// <summary>A line the repair leaves unchanged, with no guesses, goes out without the preview window.</summary>
+    public bool SendCleanRightAway { get; set; }
+
     /// <summary>Shows the short how-to line under the preview buttons.</summary>
     public bool ShowTips { get; set; } = true;
 

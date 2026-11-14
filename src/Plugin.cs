@@ -157,6 +157,7 @@ public sealed class Plugin : IDalamudPlugin
     private void Draw()
     {
         preview.ShowTips = configuration.ShowTips;
+        preview.SendCleanRightAway = configuration.SendCleanRightAway;
         preview.Draw();
         settings.Draw();
     }
