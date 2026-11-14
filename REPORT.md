@@ -1,4 +1,4 @@
-# TypeMend measurement report (2026-11-09, v3 retrain 2026-11-14)
+# TypeMend measurement report (2026-11-09, v3 and v4 retrains 2026-11-14)
 
 Measured on the exact compressed model files that ship. Figures are the share of words matching the intended sentence.
 
@@ -42,7 +42,33 @@ Speed was measured on an i7-14700KF. A Ryzen 9 5900X has not been tested. WebGPU
 
 Training plateaued: over the last 100,000 of 144,000 steps the newest-10 score stayed between 79% and 83%. More of the same training is unlikely to help.
 
-## v3 retrain (2026-11-14, shipped)
+## v4: for everyone (2026-11-14, shipped)
+
+The first writer stopped replying, so TypeMend is now meant for anyone writing English. v4 continues from v3 for 60
+minutes (`training/finetune.py 60 ft4 data/ft3_final.pt 1e-4 train4`), nothing thrown away. Training text
+(`training/train4.py`): 30% the v3 text, 50% standard written lines kept as written (capitals, punctuation,
+apostrophes, numbers and times) with everyday typos, 20% standard lines left clean. Typos never make another real word
+and never go into names. New check: `training/eval_general.py`, 50 well-written lines and 50 everyday typo lines,
+hand-written and in no training list.
+
+| | v3 | v4 |
+|---|---|---|
+| Well-written lines unchanged (general) | 46/50 | 50/50 |
+| Everyday typos fully right (general) | 40/50 (95.9% of words) | 45/50 (97.9%) |
+| Tired typing | 96.1% | 96.6% |
+| Misspellings | 96.3% | 97.2% |
+| Swear words invented on 160 garbled lines | 1 | 0 |
+| First writer, newest 10 real | 85.7% | 84.8% |
+| First writer, all 15 real | 88.2% | 87.4% |
+| 40 made-up sentences | 95.6% | 96.4% |
+| Roleplay (with kept words) | 95.8% | 95.8% |
+| CPU without VNNI | same output | same output |
+
+v3 had turned "He bit his lip." into "He bitch is lip.", "3:30" into "3 :30" and "My cat sat" into "set"; v4 keeps all
+three. The first writer's scores moved by about 3 words of 374, within noise. Still missed: harder misspellings
+("calender", "wheather", "hilarous"), "wifi pasword" becomes "wife password".
+
+## v3 retrain (2026-11-14, replaced by v4)
 
 Continued from the 2026-11-09 model for 75 minutes (`training/finetune.py`, training text in `training/train3.py`,
 GPU memory capped at 55%, GPU busy about two thirds of the time). New in the training text: tired typing (neighbouring

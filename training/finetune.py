@@ -7,9 +7,11 @@ import ctypes, json, math, os, random, sys, time
 import torch, torch.nn.functional as F
 from train import enc, PAD, BOS, EOS, V
 from train2 import Net2, evaluate
-from train3 import sample
+import importlib
+sample = importlib.import_module(sys.argv[5] if len(sys.argv) > 5 else "train3").sample   # training text: train3 (v3) or train4 (v4)
 
-# python finetune.py <minutes> [<tag> <start weights> <base lr>]: pass 2 was "finetune.py 40 ft2 data/ft_final.pt 8e-5"
+# python finetune.py <minutes> [<tag> <start weights> <base lr> <text module>]: v3 was "finetune.py 75 ft3 data/final.pt 1.5e-4",
+# v4 "finetune.py 60 ft4 data/ft3_final.pt 1e-4 train4"
 TAG = sys.argv[2] if len(sys.argv) > 2 else "ft"
 CKPT, BACKUP, PAUSE = f"data/{TAG}_ckpt.pt", f"data/{TAG}_ckpt.bak.pt", "data/PAUSE"
 START = sys.argv[3] if len(sys.argv) > 3 else "data/final.pt"
