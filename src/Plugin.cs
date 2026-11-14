@@ -100,7 +100,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             var output = new StringBuilder();
             var unsure = new List<string>();
-            var keep = ChatLine.ParseKeepWords(configuration.NeverChange);
+            var keep = ChatLine.ParseKeepWords(configuration.NeverChange).Concat(ChatLine.ChatWords).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
             if (configuration.KeepRoleplayWords) keep = keep.Concat(ChatLine.RoleplayWords).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
             var swears = configuration.KeepSwearWords;
             if (swears) keep = keep.Concat(SwearWords.Words).Distinct(StringComparer.OrdinalIgnoreCase).ToList();

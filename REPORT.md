@@ -1,4 +1,4 @@
-# TypeMend measurement report (2026-11-09)
+# TypeMend measurement report (2026-11-09, v3 retrain 2026-11-14)
 
 Measured on the exact compressed model files that ship. Figures are the share of words matching the intended sentence.
 
@@ -41,6 +41,37 @@ Speed was measured on an i7-14700KF. A Ryzen 9 5900X has not been tested. WebGPU
 - Game and product names not seen in training can get split or altered.
 
 Training plateaued: over the last 100,000 of 144,000 steps the newest-10 score stayed between 79% and 83%. More of the same training is unlikely to help.
+
+## v3 retrain (2026-11-14, shipped)
+
+Continued from the 2026-11-09 model for 75 minutes (`training/finetune.py`, training text in `training/train3.py`,
+GPU memory capped at 55%, GPU busy about two thirds of the time). New in the training text: tired typing (neighbouring
+keys, two keys at once, a key held a bit long; never a slip that makes another real word), common misspellings that are
+not real words (definately, alot, could of, wich), more swear words, made-up roleplay lines, short chat lines.
+Checks for the new aims are in `training/eval3.py` (made-up sentences only).
+
+| | Before | After |
+|---|---|---|
+| Real messages, newest 10 | 81.1% | 85.7% |
+| Real messages, all 15 | 84.4% | 88.2% |
+| 40 made-up sentences | 96.1% | 95.6% |
+| Roleplay lines (rp_eval, with the apps' kept words) | 92.8% | 95.8% |
+| Tired typing, 40 made-up lines | 70.0% | 96.1% |
+| Misspellings, 25 made-up lines | 86.4% | 96.3% |
+| Correctly typed swear words and slang left alone | 12/20 | 20/20 |
+| Swear words with typos | 64.5% | 95.7% |
+| Clean text unchanged | 40/40 | 40/40 |
+| CPU without VNNI (cpu_check.py) | same output | same output |
+
+Tried and dropped on the way: (1) 90 minutes with mixed-up real words in the training text (your/youre, there/their,
+then/than, where/were): it learned to change correct words ("your thigh" to "youre thigh"); (2) 40 more minutes on top
+with fewer swear words: short chat words broke ("ok" to "omg", "bye" to "beg"). The shipped run starts again from the
+2026-11-09 model without both. Short chat words still slip without context ("ok" to "of", "ty" to "they"), so the apps
+keep a fixed list of them as typed (`ChatLine.ChatWords`, `CHAT_WORDS` in worker.js).
+
+Known slips of this model: "you earned a treat" to "you were a great" (clean roleplay line); on very garbled lines it can
+invent a word, once a swear word ("lasy nitht" to "last bitch", 1 in 160 made-up tired lines; the old model invented one
+too). Both show as guesses.
 
 ## Word list experiment (not shipped)
 

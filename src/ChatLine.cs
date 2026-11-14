@@ -51,6 +51,12 @@ public static partial class ChatLine
     /// </summary>
     public static readonly string[] RoleplayWords = { "aftercare", "safeword", "safewords", "crop", "thigh", "thighs", "collar", "collared", "leash", "gag", "gagged", "cuffs", "cuffed", "rope", "ropes", "shibari", "blindfold", "blindfolded", "restraints", "restrained", "kneel", "kneels", "kneeling", "whimper", "whimpers", "squirm", "squirms", "spank", "spanks", "spanking", "Mistress", "Master", "Sir", "Daddy", "Mommy", "pet", "pup", "puppy", "kitten", "brat", "bratty", "subspace", "dom", "domme", "sub", "switch", "ooc", "brb", "afk", "mmph", "mmm", "nngh", "hnng", "mhm", "purr", "purrs", "nuzzle", "nuzzles", "smirk", "smirks" };
 
+    /// <summary>
+    /// Short chat words always kept exactly as typed. Measured 2026-11-14: with no context the model turns some of them
+    /// into common words ("ok" to "of", "ty" to "they", "np" to "no").
+    /// </summary>
+    public static readonly string[] ChatWords = { "ok", "okay", "okk", "k", "kk", "yep", "yup", "nope", "ty", "thx", "np", "gn", "gm", "gg", "brb", "afk", "omg", "lol", "lmao", "idk", "ikr", "tbh", "ngl", "imo", "btw", "aint", "oops" };
+
     /// <summary>Splits text around game placeholders like &lt;t&gt; and roleplay marks (~, ((, )), which stay as typed. Odd positions are the kept parts.</summary>
     public static string[] SplitPlaceholders(string body) => Placeholder().Split(body);
 

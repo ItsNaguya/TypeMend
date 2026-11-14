@@ -78,6 +78,9 @@ const KEPT = /(\S*[^\x20-\x7e]\S*|\n+|<[^<>\s]+>|~+|\(\(+|\)\)+)/;
 // Roleplay words kept exactly as typed when spelled like this. Same list as the plugin's ChatLine.RoleplayWords.
 const ROLEPLAY = ['aftercare', 'safeword', 'safewords', 'crop', 'thigh', 'thighs', 'collar', 'collared', 'leash', 'gag', 'gagged', 'cuffs', 'cuffed', 'rope', 'ropes', 'shibari', 'blindfold', 'blindfolded', 'restraints', 'restrained', 'kneel', 'kneels', 'kneeling', 'whimper', 'whimpers', 'squirm', 'squirms', 'spank', 'spanks', 'spanking', 'Mistress', 'Master', 'Sir', 'Daddy', 'Mommy', 'pet', 'pup', 'puppy', 'kitten', 'brat', 'bratty', 'subspace', 'dom', 'domme', 'sub', 'switch', 'ooc', 'brb', 'afk', 'mmph', 'mmm', 'nngh', 'hnng', 'mhm', 'purr', 'purrs', 'nuzzle', 'nuzzles', 'smirk', 'smirks'];
 
+// Short chat words always kept as typed. Same list as the plugin's ChatLine.ChatWords.
+const CHAT_WORDS = ['ok', 'okay', 'okk', 'k', 'kk', 'yep', 'yup', 'nope', 'ty', 'thx', 'np', 'gn', 'gm', 'gg', 'brb', 'afk', 'omg', 'lol', 'lmao', 'idk', 'ikr', 'tbh', 'ngl', 'imo', 'btw', 'aint', 'oops'];
+
 // Repairs the parts between kept ones; kept parts sit at odd positions after split().
 async function around(text, kept, inner, unsure) {
   const parts = text.split(kept);
@@ -178,7 +181,7 @@ function fixSwearTypos(text, keep, fixed) {
 
 // Anything the model does not know (umlauts, emoji, line breaks, <placeholders>) is passed through untouched.
 async function repair(text, keep) {
-  const words = [...(keep || []), ...ROLEPLAY, ...SWEAR_WORDS];
+  const words = [...(keep || []), ...ROLEPLAY, ...SWEAR_WORDS, ...CHAT_WORDS];
   setKeepWords(words);
   const fixed = [];
   const unsure = [];
