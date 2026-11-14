@@ -2,7 +2,7 @@
   "Author": "Naguya",
   "Name": "TypeMend",
   "InternalName": "TypeMend",
-  "AssemblyVersion": "0.1.1.0",
+  "AssemblyVersion": "0.1.2.0",
   "Description": "Repairs typing as you send chat, on your own PC. You see your words and the repair side by side and choose what goes out. It keeps your meaning, slang and tone, and marks words it is unsure about.",
   "ApplicableVersion": "any",
   "DalamudApiLevel": 15,
