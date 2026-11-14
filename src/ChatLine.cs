@@ -55,7 +55,7 @@ public static partial class ChatLine
     /// Short chat words always kept exactly as typed. Measured 2026-11-14: with no context the model turns some of them
     /// into common words ("ok" to "of", "ty" to "they", "np" to "no").
     /// </summary>
-    public static readonly string[] ChatWords = { "ok", "okay", "okk", "k", "kk", "yep", "yup", "nope", "ty", "thx", "np", "gn", "gm", "gg", "brb", "afk", "omg", "lol", "lmao", "idk", "ikr", "tbh", "ngl", "imo", "btw", "aint", "oops" };
+    public static readonly string[] ChatWords = { "ok", "okay", "okk", "k", "kk", "yep", "yup", "nope", "ty", "thx", "np", "gn", "gm", "gg", "brb", "afk", "omg", "lol", "lmao", "idk", "ikr", "tbh", "ngl", "imo", "btw", "aint", "oops", "sus", "ofc", "pls", "plz", "rn", "nvm", "smh", "wdym", "irl", "tho", "cuz", "nah", "yeah", "yea", "hmm", "ugh", "xd", "uwu", "owo", "lmk", "jk", "ily", "wb" };
 
     /// <summary>Splits text around game placeholders like &lt;t&gt; and roleplay marks (~, ((, )), which stay as typed. Odd positions are the kept parts.</summary>
     public static string[] SplitPlaceholders(string body) => Placeholder().Split(body);

@@ -112,7 +112,7 @@ var times = new List<long>();
 foreach (var message in messages)
 {
     var timer = Stopwatch.StartNew();
-    var repair = repairer.RunKeeping(message, ChatLine.RoleplayWords);
+    var repair = repairer.RunKeeping(message, ChatLine.RoleplayWords.Concat(ChatLine.ChatWords).ToList());
     times.Add(timer.ElapsedMilliseconds);
     Console.WriteLine($"OUT\t{repair.Text}\t{string.Join(" | ", repair.UnsureWords)}");
 }

@@ -195,14 +195,19 @@ public sealed class PreviewWindow
             focus = false;
         }
         ImGui.SetNextItemWidth(-1);
+        Theme.Label("EDIT", Theme.Muted);
         ImGui.PushStyleColor(ImGuiCol.FrameBg, Theme.EditBack);
+        ImGui.PushStyleColor(ImGuiCol.Border, Theme.Accent with { W = 0.35f });
+        ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, 1 * scale);
+        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(8, 6) * scale);
         var enter = ImGui.InputTextWithHint("##edit", "Edit before sending (Enter sends)", ref edited, 800, ImGuiInputTextFlags.EnterReturnsTrue);
-        ImGui.PopStyleColor();
+        ImGui.PopStyleVar(2);
+        ImGui.PopStyleColor(2);
         if (enter && shown.Elapsed > EnterGuard) TrySend(prefix + edited, true);
 
         var bytes = Encoding.UTF8.GetByteCount(prefix + edited);
         var fraction = bytes / (float)ChatByteLimit;
-        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 4 * scale);
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 3 * scale);
         var colour = fraction > 1 ? Theme.Problem : fraction > 0.85f ? Theme.Unsure : Theme.Accent with { W = 0.6f };
         Theme.Bar(fraction, colour, 3 * scale);
         if (ImGui.IsItemHovered())

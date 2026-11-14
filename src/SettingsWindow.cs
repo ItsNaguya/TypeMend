@@ -117,8 +117,9 @@ public sealed class SettingsWindow
             ImGui.TextUnformatted(enabled ? "TypeMend is on" : "TypeMend is off");
             ImGui.SetWindowFontScale(1f);
 
+            // Window-local x, measured from the panel's right edge (panel padding 10 + a margin).
             var toggleWidth = ImGui.GetFrameHeight() * 1.55f;
-            ImGui.SameLine(ImGui.GetContentRegionAvail().X + ImGui.GetCursorPosX() - toggleWidth - 12 * scale);
+            ImGui.SameLine(ImGui.GetWindowContentRegionMax().X - toggleWidth - 22 * scale);
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 3 * scale);
             if (ImGuiComponents.ToggleButton("##enabled", ref enabled))
             {
