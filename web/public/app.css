@@ -46,6 +46,7 @@ button.quiet { font-weight: 500; font-size: 14px; padding: 6px 10px; background:
 .card p { margin: 0; font-size: 17px; white-space: pre-wrap; overflow-wrap: anywhere; min-height: 1.5em; border-radius: 4px; }
 mark { background: var(--guess); color: inherit; border-radius: 3px; padding: 0 2px; }
 .note { color: var(--ink-2); font-size: 14px; margin: 10px 0 0; }
+.lead + .lang { margin: -16px 0 24px; }
 .foot { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 20px; padding: 18px 16px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 13px; }
 .foot a { color: inherit; }
 @media (max-width: 640px) { .pair { grid-template-columns: 1fr; } }

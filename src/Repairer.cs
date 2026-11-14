@@ -121,7 +121,7 @@ public sealed class Repairer : IDisposable
                 output.Append(parts[i]);
                 continue;
             }
-            var repair = inner(parts[i], cancel);
+            var repair = inner(parts[i].Trim(), cancel);
             if (parts[i].StartsWith(' ')) output.Append(' ');
             output.Append(repair.Text);
             if (parts[i].EndsWith(' ')) output.Append(' ');

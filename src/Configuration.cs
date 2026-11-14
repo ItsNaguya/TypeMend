@@ -14,6 +14,9 @@ public sealed class Configuration : IPluginConfiguration
     /// <summary>Also keep the built-in roleplay words (collar, safeword, aftercare, ...) when typed exactly.</summary>
     public bool KeepRoleplayWords { get; set; } = true;
 
+    /// <summary>Keep the built-in English and German swear words when typed exactly, and repair their typos.</summary>
+    public bool KeepSwearWords { get; set; } = true;
+
     /// <summary>Shows the short how-to line under the preview buttons.</summary>
     public bool ShowTips { get; set; } = true;
 

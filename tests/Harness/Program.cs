@@ -82,6 +82,24 @@ Channel("tell to a different person is refused", "", tellOne, tellOther, false);
 Channel("own channel command ignores the switch", "/p ", say, fc, true);
 Console.WriteLine($"chat line failures: {failures}");
 
+void Swear(string typed, string expected)
+{
+    var got = SwearWords.FixTypos(typed, ChatLine.RoleplayWords).Text;
+    if (got == expected) Console.WriteLine($"ok   swear {typed}");
+    else { failures++; Console.WriteLine($"FAIL swear {typed} -> {got}, expected {expected}"); }
+}
+Swear("that bastrad pulled again", "that bastard pulled again");
+Swear("stop being an ashole", "stop being an asshole");
+Swear("Bastrad", "Bastard");
+Swear("BASTRAD", "BASTARD");
+Swear("arshcloch", "arschloch");
+Swear("scheise", "scheisse");
+Swear("a witch and a ditch", "a witch and a ditch");
+Swear("hello Bastrad", "hello Bastrad");
+Swear("fuck shit bastard", "fuck shit bastard");
+Swear("i want to go home", "i want to go home");
+Swear("the counter is pitched", "the counter is pitched");
+
 var directory = args[0];
 var threads = int.Parse(args[1]);
 var messages = File.ReadAllLines(args[2]).Where(l => l.Length > 0).ToArray();
@@ -108,6 +126,8 @@ Console.WriteLine($"PLAIN\t{repairer.RunKeepingStretches(altered).Text}");
 var keptRun = repairer.RunKeeping(altered, new[] { "Tataroo" });
 Console.WriteLine($"KEEP\t{keptRun.Text}");
 if (!keptRun.Text.Contains("Tataroo") || !keptRun.Text.Contains("tonight")) { failures++; Console.WriteLine("FAIL never-change word altered"); }
+var spaced = repairer.RunKeeping("i wil lbe lat etonight", new[] { "lat" }).Text;
+if (spaced.Contains("  ")) { failures++; Console.WriteLine($"FAIL double space: {spaced}"); }
 Console.WriteLine($"final failures: {failures}");
 times.Sort();
 Console.WriteLine($"threads {threads}: median {times[times.Count / 2]} ms, worst {times[^1]} ms");

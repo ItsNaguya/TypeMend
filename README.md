@@ -2,9 +2,11 @@
 
 Repairs typing, and nothing else, on the writer's own PC. It is built with a person in mind whose disability affects how they type. It keeps their meaning, slang, tone and adult content, marks words it is unsure about, and always shows what was typed next to the repair. Nothing is sent anywhere for processing.
 
+**Languages:** made for English. It can help with other languages too, with limits: English and German swear words are kept, and typos in them are repaired to the swear word; words with letters like ä, ö, ü or ß stay as typed (the plugin then sends the whole line as typed); other non-English words may be "repaired" into English ones. The swear lists come from `training/swear_words.py`, which writes `src/SwearWords.cs` and `web/public/swearwords.js`.
+
 Two front ends share one small model (22 MB, CPU only):
 
-- **Dalamud plugin** (`src/`): catches a chat line when Enter is pressed and shows a preview. Enter sends the repair, "Send as typed" sends the original, Esc cancels. `/typemend` opens the main window (on/off, roleplay words, the never-change list and the learned fixes), `/typemend on` and `/typemend off` switch repairs, and `/typemend words` opens the never-change list. Commands are left alone; only chat lines are repaired.
+- **Dalamud plugin** (`src/`): catches a chat line when Enter is pressed and shows a preview. Enter sends the repair, "Send as typed" sends the original, Esc cancels. `/typemend` opens the main window (on/off, roleplay and swear words, the never-change list and the learned fixes), `/typemend on` and `/typemend off` switch repairs, and `/typemend words` opens the never-change list. Commands are left alone; only chat lines are repaired.
 - **Web page** (`web/`): the fallback for patch days when plugins can't load. Paste, repair, copy. English and German. Its never-change list is saved only in that browser.
 
 ## Folders

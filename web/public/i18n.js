@@ -4,6 +4,7 @@ window.I18N = (() => {
     theme: 'Hell / dunkel',
     title: 'Deine Worte, so getippt, wie du sie gemeint hast.',
     lead: 'TypeMend repariert Tippfehler und sonst nichts. Bedeutung, Slang und Ton bleiben, und was du gesagt hast, wird nie geglättet.',
+    langNote: 'Gemacht für Englisch. Bei anderen Sprachen hilft es auch, aber mit Grenzen: Deutsche Schimpfwörter und Wörter mit ä, ö, ü oder ß bleiben, wie du sie getippt hast, andere Wörter werden aber eventuell zu englischen "repariert". Bitte prüfe das Ergebnis.',
     typedLabel: 'Was du getippt hast',
     repair: 'Reparieren',
     keepTitle: 'Wörter, die sich nie ändern sollen',

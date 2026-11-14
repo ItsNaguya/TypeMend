@@ -102,6 +102,8 @@ public sealed class Plugin : IDalamudPlugin
             var unsure = new List<string>();
             var keep = ChatLine.ParseKeepWords(configuration.NeverChange);
             if (configuration.KeepRoleplayWords) keep = keep.Concat(ChatLine.RoleplayWords).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            var swears = configuration.KeepSwearWords;
+            if (swears) keep = keep.Concat(SwearWords.Words).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
             var parts = ChatLine.SplitPlaceholders(body);
             for (var i = 0; i < parts.Length; i++)
             {
@@ -110,13 +112,14 @@ public sealed class Plugin : IDalamudPlugin
                     output.Append(parts[i]);
                     continue;
                 }
-                var repair = model.RunKeeping(parts[i], keep, token);
+                var (typed, swearFixes) = swears ? SwearWords.FixTypos(parts[i], keep) : (parts[i], new List<string>());
+                var repair = model.RunKeeping(typed.Trim(), keep, token);
                 var learned = memory.Apply(repair.Text);
                 if (parts[i].StartsWith(' ')) output.Append(' ');
                 output.Append(learned);
                 if (parts[i].EndsWith(' ')) output.Append(' ');
                 var words = learned.Split(' ');
-                unsure.AddRange(repair.UnsureWords.Where(words.Contains));
+                unsure.AddRange(repair.UnsureWords.Concat(swearFixes).Where(words.Contains));
             }
             preview.SetResult(output.ToString(), unsure);
         }

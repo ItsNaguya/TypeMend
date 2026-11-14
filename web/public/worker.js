@@ -1,4 +1,5 @@
 // Runs the repair model off the page's main thread. Same steps as the plugin's Repairer.cs.
+import { SWEAR_WORDS, SWEAR_MIN, REAL_NEAR_SWEARS } from './swearwords.js';
 const BOS = 1, EOS = 2, OFFSET = 29, MAX_PIECE = 300, UNSURE_BELOW = 0.9;
 let ort, enc, dec, backend;
 
@@ -85,7 +86,7 @@ async function around(text, kept, inner, unsure) {
     const part = parts[i];
     if (i % 2 === 1 || !/[a-z]/i.test(part)) { out += part; continue; }
     if (part.startsWith(' ')) out += ' ';
-    out += await inner(part, unsure);
+    out += await inner(part.trim(), unsure);
     if (part.endsWith(' ')) out += ' ';
   }
   return out;
@@ -137,11 +138,52 @@ async function repairKeepingNames(run, unsure) {
   return around(run, keepPattern, repairKeepingStretches, unsure);
 }
 
+// Typos in swear words of 5+ letters become the swear word ("bastrad" to "bastard"). Same steps as the plugin's SwearWords.FixTypos.
+const REPAIRABLE = SWEAR_WORDS.filter((w) => w.length >= SWEAR_MIN && /^[a-z]+$/.test(w));
+const KNOWN_SWEARS = new Set(SWEAR_WORDS.map((w) => w.toLowerCase()));
+function oneTypo(a, b) {
+  if (a === b) return false;
+  if (a.length === b.length) {
+    let i = 0;
+    while (a[i] === b[i]) i++;
+    if (a.slice(i + 1) === b.slice(i + 1)) return true;
+    return a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2);
+  }
+  if (Math.abs(a.length - b.length) !== 1) return false;
+  const [s, l] = a.length < b.length ? [a, b] : [b, a];
+  let k = 0;
+  while (k < s.length && s[k] === l[k]) k++;
+  return s.slice(k) === l.slice(k + 1);
+}
+function fixSwearTypos(text, keep, fixed) {
+  const keepSet = new Set(keep.map((w) => w.toLowerCase()));
+  let first = true;
+  return text.replace(/(?<![\p{L}\p{N}'])[A-Za-z]+(?![\p{L}\p{N}'])/gu, (typed) => {
+    const isFirst = first;
+    first = false;
+    const lower = typed.toLowerCase();
+    if (lower.length < SWEAR_MIN - 1 || KNOWN_SWEARS.has(lower) || REAL_NEAR_SWEARS.has(lower) || keepSet.has(lower)) return typed;
+    const capitalised = /^[A-Z]/.test(typed) && /[a-z]/.test(typed.slice(1));
+    if (capitalised && !isFirst) return typed;   // likely a name
+    let matches = REPAIRABLE.filter((w) => oneTypo(lower, w));
+    // Close to two: a dropped, added or swapped letter beats a changed one ("scheise" is "scheisse", not "scheiss").
+    if (matches.length > 1) matches = matches.filter((w) => w.length !== lower.length || [...w].sort().join('') === [...lower].sort().join(''));
+    if (matches.length !== 1) return typed;      // none, or still close to two: leave it to the model
+    const m = matches[0];
+    const out = typed.length > 1 && typed === typed.toUpperCase() ? m.toUpperCase() : /^[A-Z]/.test(typed) ? m[0].toUpperCase() + m.slice(1) : m;
+    fixed.push(out);
+    return out;
+  });
+}
+
 // Anything the model does not know (umlauts, emoji, line breaks, <placeholders>) is passed through untouched.
 async function repair(text, keep) {
-  setKeepWords([...(keep || []), ...ROLEPLAY]);
+  const words = [...(keep || []), ...ROLEPLAY, ...SWEAR_WORDS];
+  setKeepWords(words);
+  const fixed = [];
   const unsure = [];
-  return { text: await around(text, KEPT, repairKeepingNames, unsure), unsure };
+  const repaired = await around(fixSwearTypos(text, words, fixed), KEPT, repairKeepingNames, unsure);
+  return { text: repaired, unsure: [...unsure, ...fixed.filter((w) => repaired.split(/\s+/).includes(w))] };
 }
 
 const ready = load().then(

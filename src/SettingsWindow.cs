@@ -75,6 +75,11 @@ public sealed class SettingsWindow
     private bool TabItem(string label, Tab tab) =>
         ImGui.BeginTabItem(label, select == tab ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None);
 
+    private const string LanguageNote =
+        "TypeMend is made for English. It can help with other languages too, with limits: German swear words are known, " +
+        "but other words may be \"repaired\" into English ones, so check the preview. Lines with letters like ä, ö, ü or ß go out as typed. " +
+        "Add words you use often under Never change.";
+
     private void DrawGeneral(float scale)
     {
         ImGui.Spacing();
@@ -86,6 +91,7 @@ public sealed class SettingsWindow
                 Theme.Wrapped(ImGui.GetStyle().Colors[(int)ImGuiCol.Text],
                     "Type in chat as you always do. Before a message goes out, a small window shows what you typed and the repair. " +
                     "You choose what is sent. It all runs on this PC; nothing leaves it.");
+                Theme.Wrapped(Theme.Muted, LanguageNote);
                 if (ImGui.SmallButton("Got it"))
                 {
                     configuration.SeenWelcome = true;
@@ -119,6 +125,14 @@ public sealed class SettingsWindow
         }
         Indented("Words like collar, safeword, aftercare, kitten or brat stay exactly as you wrote them. Marks like ~ and (( )) always do.");
 
+        var swears = configuration.KeepSwearWords;
+        if (ImGui.Checkbox("Keep swear words and fix their typos", ref swears))
+        {
+            configuration.KeepSwearWords = swears;
+            save();
+        }
+        Indented("English and German swear words stay as you wrote them, and a typo in one (\"bastrad\") becomes the swear word you meant. Its fixes show as guesses.");
+
         var tips = configuration.ShowTips;
         if (ImGui.Checkbox("Show tips in the preview window", ref tips))
         {
@@ -128,6 +142,10 @@ public sealed class SettingsWindow
 
         ImGui.Spacing();
         ImGui.Separator();
+        ImGui.Spacing();
+
+        ImGui.TextColored(Theme.Accent, "Languages");
+        Theme.Wrapped(Theme.Muted, LanguageNote);
         ImGui.Spacing();
 
         ImGui.TextColored(Theme.Accent, "How it works");
