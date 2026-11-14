@@ -8,7 +8,7 @@ const root = join(import.meta.dirname, 'public');
 const port = Number(process.argv[2] || 3021);
 const types = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css',
-  '.svg': 'image/svg+xml', '.wasm': 'application/wasm', '.onnx': 'application/octet-stream',
+  '.svg': 'image/svg+xml', '.wasm': 'application/wasm', '.onnx': 'application/octet-stream', '.txt': 'text/plain; charset=utf-8',
 };
 const headers = {
   'Cross-Origin-Opener-Policy': 'same-origin',

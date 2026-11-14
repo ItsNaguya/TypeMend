@@ -16,7 +16,13 @@ window.I18N = (() => {
     repairFailed: 'Das hat nicht geklappt. Dein Text ist unverändert.',
     youTyped: 'Du hast getippt',
     repaired: 'Repariert (du kannst das ändern)',
-    guesses: 'Markierte Wörter sind Vermutungen. Bitte prüfe sie.',
+    guesses: 'Markierte Wörter sind Vermutungen. Klicke eins an, um es zu korrigieren.',
+    fixHint: 'Klicken zum Korrigieren',
+    fixSuggestions: 'Vorschläge',
+    fixLoading: 'Suche...',
+    fixNone: 'Keine anderen Vorschläge',
+    fixTyped: 'So, wie du es getippt hast',
+    fixKeep: 'Behalten:',
     copy: 'Reparatur kopieren',
     copyBoth: 'Reparatur und Original kopieren',
     copied: 'Kopiert.',
@@ -35,6 +41,12 @@ window.I18N = (() => {
     copied: 'Copied.',
     copyFailed: 'Copying did not work. Please select the text by hand.',
     typedPrefix: 'typed',
+    fixHint: 'Click to fix',
+    fixSuggestions: 'Suggestions',
+    fixLoading: 'Looking...',
+    fixNone: 'No other suggestions',
+    fixTyped: 'As you typed it',
+    fixKeep: 'Keep',
   };
   const read = () => {
     const m = document.cookie.match(/(?:^|;\s*)naguya_lang=(en|de)\b/);

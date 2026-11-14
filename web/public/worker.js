@@ -51,6 +51,35 @@ async function decode(piece) {
   return { text, conf };
 }
 
+// The few best repairs of a short piece, for the click-to-fix menu. Same steps as the plugin's Repairer.Candidates.
+async function candidates(piece, width = 6) {
+  const x = BigInt64Array.from([...piece], (c) => BigInt(c.charCodeAt(0) - OFFSET));
+  const { m } = await enc.run({ x: new ort.Tensor('int64', x, [1, x.length]) });
+  let beams = [{ ids: [BOS], score: 0, done: false }];
+  const limit = piece.length + 6 + Math.floor(piece.length / 4);
+  for (let step = 0; step < limit && beams.some((b) => !b.done); step++) {
+    const next = [];
+    for (const b of beams) {
+      if (b.done) { next.push(b); continue; }
+      const { o } = await dec.run({ y: new ort.Tensor('int64', BigInt64Array.from(b.ids.map(BigInt)), [1, b.ids.length]), m });
+      const s = o.data;
+      let max = -Infinity;
+      for (let i = 0; i < s.length; i++) if (s[i] > max) max = s[i];
+      let sum = 0;
+      for (let i = 0; i < s.length; i++) sum += Math.exp(s[i] - max);
+      const top = [...s.keys()].sort((p, q) => s[q] - s[p]).slice(0, width);
+      for (const t of top) next.push({ ids: [...b.ids, t], score: b.score + s[t] - max - Math.log(sum), done: t === EOS });
+    }
+    beams = next.sort((p, q) => q.score - p.score).slice(0, width);
+  }
+  const seen = new Set(), out = [];
+  for (const b of beams.filter((b) => b.done)) {
+    const text = String.fromCharCode(...b.ids.slice(1, -1).map((i) => i + OFFSET)).trim();
+    if (text && !seen.has(text)) { seen.add(text); out.push(text); }
+  }
+  return out;
+}
+
 function unsureWords({ text, conf }, into) {
   let start = 0;
   for (let i = 0; i <= text.length; i++) {
@@ -196,6 +225,15 @@ const ready = load().then(
 
 self.onmessage = async ({ data }) => {
   await ready;
+  if (data.type === 'candidates') {
+    try {
+      const piece = data.text.slice(0, 90);
+      postMessage({ type: 'candidates', id: data.id, list: /^[ -~]+$/.test(piece) ? await candidates(piece) : [] });
+    } catch (e) {
+      postMessage({ type: 'candidates', id: data.id, list: [] });
+    }
+    return;
+  }
   const start = performance.now();
   try {
     postMessage({ type: 'done', id: data.id, ...(await repair(data.text, data.keep)), ms: Math.round(performance.now() - start) });

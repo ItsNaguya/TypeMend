@@ -23,6 +23,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly CancellationTokenSource shutdown = new();
     private volatile Repairer? repairer;
     private volatile string modelState = "Loading...";
+    private volatile IReadOnlySet<string> knownWords = new HashSet<string>();
 
     public Plugin(
         IDalamudPluginInterface pluginInterface,
@@ -44,6 +45,13 @@ public sealed class Plugin : IDalamudPlugin
             RepairSent = (shown, sent) =>
             {
                 if (memory.Learn(shown, sent)) pluginInterface.SavePluginConfig(configuration);
+            },
+            Suggest = (typed, repaired, start, word, token) =>
+            {
+                var model = repairer;
+                if (model == null) return new Suggestions.Result(null, Array.Empty<string>());
+                var keep = ChatLine.ParseKeepWords(configuration.NeverChange);
+                return Suggestions.For(model, typed, repaired, start, word, knownWords, keep, token);
             },
             HideTips = () =>
             {
@@ -70,6 +78,8 @@ public sealed class Plugin : IDalamudPlugin
         try
         {
             repairer = new Repairer(directory, ModelThreads);
+            var wordList = Path.Combine(directory, "model", "words.txt");
+            if (File.Exists(wordList)) knownWords = File.ReadAllLines(wordList).ToHashSet(StringComparer.OrdinalIgnoreCase);
             modelState = "Ready, running on this PC";
             log.Information("TypeMend model loaded.");
         }

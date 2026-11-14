@@ -45,6 +45,16 @@ button.quiet { font-weight: 500; font-size: 14px; padding: 6px 10px; background:
 .card h2 { font: 600 13px var(--sans); color: var(--ink-2); margin: 0 0 8px; }
 .card p { margin: 0; font-size: 17px; white-space: pre-wrap; overflow-wrap: anywhere; min-height: 1.5em; border-radius: 4px; }
 mark { background: var(--guess); color: inherit; border-radius: 3px; padding: 0 2px; }
+#repairedText mark { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+#repairedText mark:hover, #repairedText mark[aria-expanded="true"] { outline: 1px solid var(--clay); }
+.fix { position: absolute; z-index: 10; min-width: 180px; max-width: min(320px, calc(100vw - 32px)); padding: 8px; background: var(--card); border: 1px solid var(--line-2); border-radius: 10px; box-shadow: 0 6px 24px rgba(0, 0, 0, .18); }
+.fix-head { font: 600 12px var(--sans); color: var(--ink-2); margin: 6px 4px 4px; }
+.fix-head:first-child { margin-top: 2px; }
+.fix-list { font-size: 14px; color: var(--ink-2); padding: 0 4px; }
+.fix button { display: block; width: 100%; text-align: left; font-weight: 500; padding: 6px 8px; margin: 2px 0; border-color: transparent; background: none; overflow-wrap: anywhere; }
+.fix button:hover, .fix button:focus-visible { background: var(--guess); outline: none; }
+.fix .typed { font-family: ui-monospace, monospace; }
+.fix .keep-word { margin-top: 6px; border-top: 1px solid var(--line); border-radius: 0 0 6px 6px; color: var(--ink-2); }
 .note { color: var(--ink-2); font-size: 14px; margin: 10px 0 0; }
 .lead + .lang { margin: -16px 0 24px; }
 .foot { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 20px; padding: 18px 16px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 13px; }

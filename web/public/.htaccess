@@ -28,7 +28,7 @@ DirectoryIndex index.html
   Header always set X-Robots-Tag "noindex, nofollow"
 
   # everything revalidates (ETag makes it cheap), so a new model reaches people on their next visit
-  <FilesMatch "\.(html|js|mjs|css|svg|onnx)$">
+  <FilesMatch "\.(html|js|mjs|css|svg|onnx|txt)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
   <FilesMatch "\.wasm$">

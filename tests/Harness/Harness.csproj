@@ -13,6 +13,7 @@
     <Compile Include="..\..\src\ChatLine.cs" Link="ChatLine.cs" />
     <Compile Include="..\..\src\SwearWords.cs" Link="SwearWords.cs" />
     <Compile Include="..\..\src\SwearWordsFix.cs" Link="SwearWordsFix.cs" />
+    <Compile Include="..\..\src\Suggestions.cs" Link="Suggestions.cs" />
     <Compile Include="..\..\src\ChatChannel.cs" Link="ChatChannel.cs" />
     <Compile Include="..\..\src\CorrectionMemory.cs" Link="CorrectionMemory.cs" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.23.2" />

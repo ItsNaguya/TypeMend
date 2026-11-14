@@ -128,6 +128,20 @@ Console.WriteLine($"KEEP\t{keptRun.Text}");
 if (!keptRun.Text.Contains("Tataroo") || !keptRun.Text.Contains("tonight")) { failures++; Console.WriteLine("FAIL never-change word altered"); }
 var spaced = repairer.RunKeeping("i wil lbe lat etonight", new[] { "lat" }).Text;
 if (spaced.Contains("  ")) { failures++; Console.WriteLine($"FAIL double space: {spaced}"); }
+var words = File.ReadAllLines(Path.Combine(directory, "model", "words.txt")).ToHashSet(StringComparer.OrdinalIgnoreCase);
+void Suggest(string typedLine, string word, string expectPick, string? expectTyped)
+{
+    var shown = repairer.RunKeeping(typedLine, ChatLine.RoleplayWords).Text;
+    var start = shown.IndexOf(word, StringComparison.Ordinal);
+    if (start < 0) { failures++; Console.WriteLine($"FAIL suggest: '{word}' not in '{shown}'"); return; }
+    var result = Suggestions.For(repairer, typedLine, shown, start, word, words, Array.Empty<string>());
+    var ok = (expectPick.Length == 0 || result.Picks.Contains(expectPick)) && result.Typed == expectTyped && !result.Picks.Contains("bitch");
+    if (!ok) failures++;
+    Console.WriteLine($"{(ok ? "ok  " : "FAIL")} suggest {word}: [{string.Join(" | ", result.Picks)}] typed {result.Typed ?? "-"}");
+}
+Suggest("i dont no what your talking about", "now", "know", "no");
+Suggest("thanks cfor sftaying up with mr lasy nitht", "last", "lady", "lasy");   // the web page also offers "lazy"; .NET and WebAssembly round a little differently
+Suggest("Whats the wifi pasword?", "wife", "", "wifi");
 Console.WriteLine($"final failures: {failures}");
 times.Sort();
 Console.WriteLine($"threads {threads}: median {times[times.Count / 2]} ms, worst {times[^1]} ms");

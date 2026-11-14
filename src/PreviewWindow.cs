@@ -36,6 +36,16 @@ public sealed class PreviewWindow
 
     public Action? HideTips { get; init; }
 
+    /// <summary>Works out the click-to-fix menu for a guessed word: typed text, repair shown, word start, word.</summary>
+    public Func<string, string, int, string, CancellationToken, Suggestions.Result>? Suggest { get; init; }
+
+    private const string FixPopup = "##typemend-fix";
+    private string fixWord = string.Empty;
+    private string? fixTyped;
+    private int fixStart = -1;
+    private Task<Suggestions.Result>? fixTask;
+    private CancellationTokenSource? fixCancel;
+
     public void Open(string line, string linePrefix, bool history, ChatChannel heldChannel)
     {
         typed = line;
@@ -46,6 +56,7 @@ public sealed class PreviewWindow
         edited = error = refused = string.Empty;
         unsure = new();
         ready = sending = false;
+        StopFix();
         IsOpen = true;
         shown.Restart();
     }
@@ -142,14 +153,19 @@ public sealed class PreviewWindow
         if (enter && shown.Elapsed > EnterGuard) TrySend(prefix + edited, true);
     }
 
-    /// <summary>Lays the words out with wrapping, guesses in amber and underlined.</summary>
+    /// <summary>Lays the words out with wrapping, guesses in amber and underlined; a click on a guess opens the fix menu.</summary>
     private void DrawWords(string text)
     {
         var right = ImGui.GetCursorScreenPos().X + ImGui.GetContentRegionAvail().X - 10 * ImGuiHelpers.GlobalScale;
         var space = ImGui.CalcTextSize(" ").X;
         var first = true;
-        foreach (var word in text.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+        var at = 0;
+        while (at < text.Length)
         {
+            if (text[at] == ' ') { at++; continue; }
+            var end = text.IndexOf(' ', at);
+            if (end < 0) end = text.Length;
+            var word = text[at..end];
             var size = ImGui.CalcTextSize(word);
             if (!first && ImGui.GetItemRectMax().X + space + size.X < right) ImGui.SameLine(0, space);
             if (unsure.Contains(word))
@@ -158,12 +174,78 @@ public sealed class PreviewWindow
                 var min = ImGui.GetItemRectMin();
                 var max = ImGui.GetItemRectMax();
                 ImGui.GetWindowDrawList().AddLine(new Vector2(min.X, max.Y), max, ImGui.GetColorU32(Theme.Unsure), 1.5f);
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("TypeMend is not sure about this word.\nFix it in the box below if it is wrong.");
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+                    ImGui.SetTooltip("TypeMend is not sure about this word.\nClick it for other suggestions.");
+                }
+                if (ImGui.IsItemClicked())
+                {
+                    StartFix(text, at, word);
+                    ImGui.OpenPopup(FixPopup);
+                }
             }
             else ImGui.TextUnformatted(word);
             first = false;
+            at = end;
         }
         if (first) ImGui.TextColored(Theme.Muted, "(empty)");
+        DrawFixMenu();
+    }
+
+    private void StartFix(string text, int start, string word)
+    {
+        StopFix();
+        fixWord = word;
+        fixStart = start;
+        fixTyped = Align.TypedFor(body, text, start, start + word.Length) is { } span ? body[span.From..span.To] : null;
+        if (Suggest == null) return;
+        var cancel = fixCancel = new CancellationTokenSource();
+        var typedBody = body;
+        fixTask = Task.Run(() => Suggest(typedBody, text, start, word, cancel.Token), cancel.Token);
+    }
+
+    private void StopFix()
+    {
+        fixCancel?.Cancel();
+        fixCancel = null;
+        fixTask = null;
+        fixStart = -1;
+    }
+
+    /// <summary>Other suggestions from the model, the letters as typed, or keep the word: one click each.</summary>
+    private void DrawFixMenu()
+    {
+        if (!ImGui.BeginPopup(FixPopup)) return;
+        Theme.Label("SUGGESTIONS", Theme.Muted);
+        if (fixTask == null) ImGui.TextColored(Theme.Muted, "None");
+        else if (!fixTask.IsCompleted) ImGui.TextColored(Theme.Muted, "Looking" + new string('.', 1 + (int)(shown.Elapsed.TotalSeconds * 3 % 3)));
+        else if (fixTask.IsCompletedSuccessfully && fixTask.Result.Picks.Count > 0)
+        {
+            foreach (var pick in fixTask.Result.Picks)
+                if (ImGui.Selectable(pick + "##pick")) Replace(pick);
+        }
+        else ImGui.TextColored(Theme.Muted, "No other suggestions");
+
+        if (fixTyped != null && fixTyped != fixWord)
+        {
+            ImGui.Spacing();
+            Theme.Label("AS YOU TYPED IT", Theme.Muted);
+            if (ImGui.Selectable(fixTyped + "##typed")) Replace(fixTyped);
+        }
+        ImGui.Separator();
+        if (ImGui.Selectable($"Keep \"{fixWord}\"##keep")) Replace(fixWord);
+        ImGui.EndPopup();
+    }
+
+    /// <summary>Puts the chosen text in place of the guessed word. The word stops being marked as a guess.</summary>
+    private void Replace(string text)
+    {
+        if (fixStart >= 0 && fixStart + fixWord.Length <= edited.Length && string.CompareOrdinal(edited, fixStart, fixWord, 0, fixWord.Length) == 0)
+            edited = edited[..fixStart] + text + edited[(fixStart + fixWord.Length)..];
+        unsure.Remove(fixWord);
+        StopFix();
+        ImGui.CloseCurrentPopup();
     }
 
     private void DrawButtons(float scale)
@@ -199,7 +281,7 @@ public sealed class PreviewWindow
         if (ShowTips && ready && error.Length == 0)
         {
             ImGui.Separator();
-            Theme.Wrapped(Theme.Muted, "Tip: amber words are guesses. Fix a word in the box and TypeMend learns it after the same fix twice. /typemend opens the settings.");
+            Theme.Wrapped(Theme.Muted, "Tip: amber words are guesses; click one for other suggestions. Fix a word and TypeMend learns it after the same fix twice. /typemend opens the settings.");
             if (ImGui.SmallButton("Got it, hide tips")) HideTips?.Invoke();
         }
     }

@@ -195,6 +195,49 @@ public sealed class Repairer : IDisposable
         return (best, 1 / sum);
     }
 
+    /// <summary>The few best repairs of a short piece, for the click-to-fix menu. Same steps as worker.js candidates.</summary>
+    public List<string> Candidates(string piece, int width, CancellationToken cancel = default)
+    {
+        var input = new long[piece.Length];
+        for (var i = 0; i < piece.Length; i++) input[i] = piece[i] - CharOffset;
+        using var encoded = encoder.Run(new[]
+        {
+            NamedOnnxValue.CreateFromTensor("x", new DenseTensor<long>(input, new[] { 1, input.Length })),
+        });
+        var memory = encoded.First().AsTensor<float>();
+
+        var beams = new List<(List<long> Ids, double Score, bool Done)> { (new List<long> { Bos }, 0, false) };
+        var limit = piece.Length + 6 + (piece.Length / 4);
+        for (var step = 0; step < limit && beams.Any(b => !b.Done); step++)
+        {
+            var next = new List<(List<long> Ids, double Score, bool Done)>();
+            foreach (var beam in beams)
+            {
+                cancel.ThrowIfCancellationRequested();
+                if (beam.Done) { next.Add(beam); continue; }
+                using var result = decoder.Run(new[]
+                {
+                    NamedOnnxValue.CreateFromTensor("y", new DenseTensor<long>(beam.Ids.ToArray(), new[] { 1, beam.Ids.Count })),
+                    NamedOnnxValue.CreateFromTensor("m", memory),
+                });
+                var scores = result.First().AsEnumerable<float>().ToArray();
+                var max = scores.Max();
+                var logSum = Math.Log(scores.Sum(s => Math.Exp(s - max)));
+                foreach (var token in Enumerable.Range(0, scores.Length).OrderByDescending(i => scores[i]).Take(width))
+                    next.Add((new List<long>(beam.Ids) { token }, beam.Score + scores[token] - max - logSum, token == Eos));
+            }
+            beams = next.OrderByDescending(b => b.Score).Take(width).ToList();
+        }
+
+        var output = new List<string>();
+        foreach (var beam in beams.Where(b => b.Done))
+        {
+            var text = new string(beam.Ids.Skip(1).SkipLast(1).Select(i => (char)(i + CharOffset)).ToArray()).Trim();
+            if (text.Length > 0 && !output.Contains(text)) output.Add(text);
+        }
+        return output;
+    }
+
     private static void CollectUnsure(string text, List<double> confidence, List<string> unsure)
     {
         var start = 0;
